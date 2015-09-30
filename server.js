@@ -122,7 +122,7 @@ var SampleApp = function() {
             self.app.get(r, self.routes[r]);
         }
         ['css', 'img', 'js', 'plugin', 'lib'].forEach(function (dir){
-            app.use('/'+dir, express.static(__dirname+'/'+dir));
+            self.app.use('/'+dir, express.static(__dirname+'/'+dir));
         });
     };
 
