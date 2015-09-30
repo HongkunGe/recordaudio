@@ -112,8 +112,8 @@ var SampleApp = function() {
      *  the handlers.
      */
     self.initializeServer = function() {
-        self.app.use(express.static(__dirname));
         
+
         self.createRoutes();
         self.app = express.createServer();
         // 
@@ -121,6 +121,9 @@ var SampleApp = function() {
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
         }
+        ['css', 'img', 'js', 'plugin', 'lib'].forEach(function (dir){
+            app.use('/'+dir, express.static(__dirname+'/'+dir));
+        });
     };
 
 
