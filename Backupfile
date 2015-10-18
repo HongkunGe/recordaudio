@@ -1,3 +1,49 @@
+# Backupfile
+index.html
+
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Audio Recorder</title>
+
+  <!-- <link rel="stylesheet" type="text/css" href="css/drawBar.css"> -->
+  <link rel="stylesheet" type="text/css" href="css/speechRecognizer.css">
+
+  <!--script src="js/audiodisplay.js"></script>
+  <script src="js/recorderjs/recorder.js"></script>
+  <script src="js/main.js"></script-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script>
+  <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
+</head>
+<body>
+<!--   <div id="viz">
+    <canvas id="analyser"></canvas>
+    <canvas id="wavedisplay"></canvas>
+  </div>
+  <div id="controls">
+    <img id="record" src="img/mic128.png" onclick="toggleRecording(this);">
+    <a id="save" href="#"><img src="img/save128.png"></a>
+  </div>
+ -->
+  <div id="main">
+      <div id="content">
+          <h1 id="about">Web Speech Example</h1>
+          <div id="example-type">textarea with JavaScript Web Speech API</div>
+          <div id="speech-content-elements">
+              <textarea id="speech-page-content" name="pageContent"></textarea>
+              <div class="speech-content-mic speech-mic"/>
+          </div>
+      </div>
+  </div>
+
+
+</body>
+</html>
+
+main.js
+
 /* Copyright 2013 Chris Wilson
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +77,12 @@ var recIndex = 0;
 - "Monitor input" switch
 */
 
+function saveAudio() {
+    audioRecorder.exportWAV( doneEncoding );
+    // could get mono instead by saying
+    // audioRecorder.exportMonoWAV( doneEncoding );
+}
+
 function gotBuffers( buffers ) {
     var canvas = document.getElementById( "wavedisplay" );
 
@@ -60,6 +112,21 @@ function toggleRecording( e ) {
         audioRecorder.clear();
         audioRecorder.record();
     }
+}
+
+function convertToMono( input ) {
+    var splitter = audioContext.createChannelSplitter(2);
+    var merger = audioContext.createChannelMerger(2);
+
+    input.connect( splitter );
+    splitter.connect( merger, 0, 0 );
+    splitter.connect( merger, 0, 1 );
+    return merger;
+}
+
+function cancelAnalyserUpdates() {
+    window.cancelAnimationFrame( rafID );
+    rafID = null;
 }
 
 function updateAnalysers(time) {
@@ -99,6 +166,19 @@ function updateAnalysers(time) {
     }
     
     rafID = window.requestAnimationFrame( updateAnalysers );
+}
+
+function toggleMono() {
+    if (audioInput != realAudioInput) {
+        audioInput.disconnect();
+        realAudioInput.disconnect();
+        audioInput = realAudioInput;
+    } else {
+        realAudioInput.disconnect();
+        audioInput = convertToMono( realAudioInput );
+    }
+
+    audioInput.connect(inputPoint);
 }
 
 function gotStream(stream) {
