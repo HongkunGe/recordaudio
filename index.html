@@ -1,45 +1,125 @@
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="992 Project">
+    <meta name="author" content="Hongkun Ge">
+
+    <title>Speech Recognition</title>
+
+    <!-- Custom CSS -->
+    <link href="css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
       <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- Latest compiled JavaScript -->
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <!-- Custom Theme JavaScript -->
+    <script src="js/clean-blog.min.js"></script>
 
     <link rel="stylesheet" type="text/css" href="css/speechRecognizer.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
-
     <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script>
     <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
 </head>
 <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">Start Bootstrap</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <li>
+                        <a href="post.html">Sample Post</a>
+                    </li>
+                    <li>
+                        <a href="contact.html">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container --> 
+    </nav>
+
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url('img/home-bg.jpg')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="site-heading">
+                        <h1 font-size = "12">You Talk. We Hear.</h1>
+                        <hr class="small">
+                        <span class="subheading">Support our work for healthy future of all the people.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+
   <div  class = "container"> 
     <div id = "main" class = "row">
-        <div id="content" class="col-md-6">
-            <h1 id="about">Web Speech Example</h1>
-            <div id="example-type">textarea with JavaScript Web Speech API</div>
+
+        <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <h1 id="about" align = "left">Here is your text.</h1>
+            <div id="example-type" align = "left">Your audio and text will be our treasured sample for research. Please click SEND EMAIL button to send us the audio and text. Thank you very much. </div>
             <div id="speech-content-elements">
-                <textarea id="speech-page-content" name="pageContent"></textarea>
+                <textarea id="speech-page-content" name="pageContent" rows="10" ></textarea>
                 <div class="speech-content-mic speech-mic" ></div>
             </div>
             <div>
+                <br/>
+                <button id = "play" type="button" class="btn btn-primary" >Play</button>  
                 <button id = "email" type="button" class="btn btn-primary" >Send email</button>
                 <a id="save" href="#" class="btn btn-link">save</a>
+                <br/>
+                <br/>
             </div>
         </div>
 
-    
-
-        <div id = "sentenceGroup" class="col-md-6">
-            <div>
-                <p>Select  <input id = "sentenceId" type = "number" min="1" max="10" value = "1" class="form-control" style="width:auto;"></input> group for testing.</p>
-                <p id = "sentenceShow" type="text"></p>
-                <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
-                <button id = "play" type="button" class="btn btn-primary" >Play</button>
-            </div>        
+        
+        <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <fieldset>
+                <legend align = "left">Sentence</legend>
+                <div id = "sentenceGroup">
+                    <p align = "left" style = "font-size:150%">Select the Sentence Group Number to be recorded. <input id = "sentenceId" type = "number" min="1" max="10" value = "1" class="form-control" style="width:auto;"></input></p>
+                    <p id = "sentenceShow" type="text" ></p>
+                    <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
+                     
+                </div>
+            </fieldset>
         </div>
+
     </div>
   </div>
 
