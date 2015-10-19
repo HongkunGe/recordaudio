@@ -3,14 +3,12 @@ body {
     font-family: 'Open Sans', arial, sans-serif;
     font-size: 13px;
 }
-
-#main {
+#main{
     display: table;
     height: 100%;
     width: 100%;
 }
-
-#content {
+#content, #sentenceGroup {
     display: table-cell;
     vertical-align: middle;
     height: 100%;
@@ -61,17 +59,17 @@ body {
 }
 
 .speech-mic {
-    background: url("mic.gif") no-repeat 50% 50%;
+    background: url("mic.gif") no-repeat 100% 100%;
     background-size: contain;
+    width: 50px;
+    height: 50px;
 }
 
 .speech-mic-works {
-    background: url("mic-animate.gif") no-repeat 50% 50%;
+    background: url("mic-animate.gif") no-repeat 100% 100%;
     background-size: contain;
-}
-
-#authority {
-    padding-top: 10px;
+    width: 50px;
+    height: 50px;
 }
 
 #speech-page-content::-webkit-scrollbar {
@@ -86,4 +84,10 @@ body {
 #speech-page-content::-webkit-scrollbar-thumb {
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+}
+
+
+input{  
+    height: 0ch;
+    width: 0ch; /* sets the width to 40 times the width of the digit “0” */
 }

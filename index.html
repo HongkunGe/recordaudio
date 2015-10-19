@@ -1,21 +1,48 @@
 <html>
 <head>
+      <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
     <link rel="stylesheet" type="text/css" href="css/speechRecognizer.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
+
     <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script>
     <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
 </head>
 <body>
-    <div id="main">
-        <div id="content">
+  <div  class = "container"> 
+    <div id = "main" class = "row">
+        <div id="content" class="col-md-6">
             <h1 id="about">Web Speech Example</h1>
             <div id="example-type">textarea with JavaScript Web Speech API</div>
             <div id="speech-content-elements">
                 <textarea id="speech-page-content" name="pageContent"></textarea>
-                <div class="speech-content-mic speech-mic"/>
+                <div class="speech-content-mic speech-mic" ></div>
             </div>
+            <div>
+                <button id = "email" type="button" class="btn btn-primary" >Send email</button>
+                <a id="save" href="#" class="btn btn-link">save</a>
+            </div>
+        </div>
 
+    
+
+        <div id = "sentenceGroup" class="col-md-6">
+            <div>
+                <p>Select  <input id = "sentenceId" type = "number" min="1" max="10" value = "1" class="form-control" style="width:auto;"></input> group for testing.</p>
+                <p id = "sentenceShow" type="text"></p>
+                <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
+                <button id = "play" type="button" class="btn btn-primary" >Play</button>
+            </div>        
         </div>
     </div>
+  </div>
+
+
 </body>
 </html>
