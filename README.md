@@ -1,3 +1,6 @@
-The OpenShift `nodejs` cartridge documentation can be found at:
+# Record Audio
 
-http://openshift.github.io/documentation/oo_cartridge_guide.html#nodejs
+This is an OpenShift webapp to collect audio samples of patients for research project on relationship between acoustic measures and intelligent health. 
+
+# Built With
+The app utilized the newest web speech API including SpeechRecognition and SpeechSynthesis. We give Harvard sentence groups which are IEEE Recommended Practices for Speech Quality Measurements. Please check it [here](http://recordaudio-hongkun.apps.unc.edu/).
