@@ -42,6 +42,7 @@
         var sentenceId = 1;
         var sentenceDic = null;
         var selectedSentences = null;
+        var sentenceNumOnPage = 1;
         var updateAnalysers = function (time) {
             // if (!analyserContext) {
             //     var canvas = document.getElementById("analyser");
@@ -253,7 +254,7 @@
         var showSentence = function(sentenceId){
             sentenceId = parseInt(sentenceId);
             var start = sentenceId + (sentenceId - 1) * 10;
-            var end = start + 10;
+            var end = start + sentenceNumOnPage;
             selectedSentences = sentenceDic.slice(start, end);
             $("#sentenceSpeak").val(selectedSentences);
             selectedSentences = sentenceDic.slice(start, end).join("<br>");
