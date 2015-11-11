@@ -91,34 +91,54 @@
     <div id = "main" class = "row">
 
         <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-            <h1 id="about" align = "left">Here is your text.</h1>
-            <div id="example-type" align = "left">Your audio and text will be our treasured sample for research. Please click SEND EMAIL button to send us the audio and text. Thank you very much. </div>
+            <!-- <h2 id="about" align = "left">Here is your text.</h2> -->
+            <div id = "sentenceGroup">
+                <p align = "left" style = "font-size:120%">Select the Sentence Number to be measured and recorded. 
+                    &nbsp;&nbsp;
+                    <input id = "sentenceId" type = "number" min="1" max="10" value = "2" class="form-control" style="width:auto;display:inline-block;">
+                    </input>
+                </p>
+                <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
+                <div class = "description" align = "left" style = "visibility: hidden;">
+                    Your score of the sentence recorded is &nbsp;&nbsp;<span  id = "scoreShow" ></span> 
+                </div>
+
+                <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
+
+            </div>            
+            
             <div id="speech-content-elements">
                 <textarea id="speech-page-content" name="pageContent" rows="10" readonly></textarea>
                 <div class="speech-content-mic speech-mic" ></div>
             </div>
             <div>
                 <br/>
+                <button id = "reset" type="button" class="btn btn-warning" >Reset</button>
                 <button id = "play" type="button" class="btn btn-primary" >Play</button>  
-                <button id = "email" type="button" class="btn btn-primary" >Send email</button>
+                <button id = "score" type="button" class="btn btn-success" >Score</button>  
+                <button id = "email" type="button" class="btn btn-info" >Send email</button>
                 <a id="save" href="#" class="btn btn-link">save</a>
+
+                <br/>
+                <br/>
+                <div class = "description" align = "left">Your audio and text will be our treasured sample for research. Please click SEND EMAIL button to send us the audio and text. Thank you very much. </div>
                 <br/>
                 <br/>
             </div>
         </div>
 
         
-        <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+<!--         <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
             <fieldset>
                 <legend align = "left">Sentence</legend>
                 <div id = "sentenceGroup">
-                    <p align = "left" style = "font-size:150%">Select the Sentence Group Number to be recorded. <input id = "sentenceId" type = "number" min="1" max="10" value = "1" class="form-control" style="width:auto;"></input></p>
+                    <p align = "left" style = "font-size:150%">Select the Sentence Number to be measured and recorded. <input id = "sentenceId" type = "number" min="1" max="10" value = "1" class="form-control" style="width:auto;"></input></p>
                     <p id = "sentenceShow" type="text" ></p>
                     <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
                      
                 </div>
             </fieldset>
-        </div>
+        </div> -->
 
     </div>
   </div>

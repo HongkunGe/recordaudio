@@ -39,7 +39,8 @@
         var canvasWidth, canvasHeight;
         var recIndex = 0;
 
-        var sentenceId = 1;
+        var sentenceIdINITIAL = 2;
+        var sentenceId = sentenceIdINITIAL;
         var sentenceDic = null;
         var selectedSentences = null;
         var sentenceNumOnPage = 1;
@@ -229,6 +230,11 @@
 
         recognition.onstart = function(){
             recognizing = true;
+            $('#email').prop('disabled', true);
+            $('#score').prop('disabled', true);
+            $('#play').prop('disabled', true);
+            $('#save').prop('disabled', true);
+
             $('.speech-content-mic').addClass('speech-mic-works');
         };
         recognition.onresult = function (event) {
@@ -249,37 +255,92 @@
 
         recognition.onend = function() {
             recognizing = false;
+            $('#email').prop('disabled', false);
+            $('#score').prop('disabled', false);
+            $('#play').prop('disabled', false);
+            $('#save').prop('disabled', false);
+
             $('.speech-content-mic').removeClass('speech-mic-works');
+
         };
 
         var showSentence = function(sentenceId){
             sentenceId = parseInt(sentenceId);
             var start = sentenceId + (sentenceId - 1) * 10;
             var end = start + sentenceNumOnPage;
-            selectedSentences = sentenceDic.slice(start, end);
+            // only get the first sentence.
+            selectedSentences = sentenceDic.slice(start, end)[0];
             selectedSentences = selectedSentences.slice(startPos, selectedSentences.length);
             $("#sentenceSpeak").val(selectedSentences);
             // selectedSentences = sentenceDic.slice(start, end).join("<br>");
             $("#sentenceShow").html(selectedSentences);
         };
 
-        
+        var sentenceScore = function(){
+            // calculate the sentence distance based on the edit distance of two sentences.
+
+            // Both tranform to lowercase and eliminate the last char '.'
+            var recognized = $("#speech-page-content").val().toLowerCase();
+            recognized = $.trim(recognized);
+
+            var original = selectedSentences.toLowerCase();
+            original = $.trim(original).slice(0, -1);
+
+            // Get the edit distance between the two sentences.
+            var dp = new Array(original.length + 1);
+            for(var i = 0; i <= original.length; i ++){
+                dp[i] = new Array(recognized.length + 1);
+                dp[i][0] = i;
+            }
+
+            for(var j = 0; j <= recognized.length; j ++){
+                dp[0][j] = j;
+            }
+
+            for(var i = 0; i < original.length; i ++){
+                for(var j = 0; j < recognized.length; j ++){
+                    if(original[i] == recognized[j]){
+                        dp[i + 1][j + 1] = dp[i][j];
+                    }else{
+                        dp[i + 1][j + 1] = Math.min(dp[i + 1][j], dp[i][j + 1], dp[i][j]) + 1;
+                    }
+                }
+            }
+            var scoreFinal = Math.floor((original.length - dp[original.length][recognized.length]) / original.length * 100); 
+            return scoreFinal;
+        };
         $("#sentenceId").change(function(){
             sentenceId = $(this).val();
             showSentence(sentenceId);
         });
-
+        // The buttons are initially disabled.
+        $('#email').prop('disabled', true);
+        $('#score').prop('disabled', true);
+        $('#save').prop('disabled', true);
         $("#email").click(function(){
             sendMail('hongkun@cs.unc.edu');
         });
 
+        
+        $("#score").click(function(){
+            testScore = sentenceScore();
+            $("#sentenceGroup .description").css("visibility", "visible");
+            $("#scoreShow").html(testScore);
+            
+        });
 
         /*Play audio of sentence as an example*/
-        
         $("#play").click(function(){
-            
             speak($("#sentenceSpeak").val());
         });
+
+        /*Reset all the states of the page*/
+        $("#reset").click(function(){
+            $("#sentenceGroup .description").css("visibility", "hidden");
+            $("#speech-page-content").val('');
+            sentenceId = sentenceIdINITIAL;
+        });
+
 
         loadVoices();
         window.speechSynthesis.onvoiceschanged = function(e) {
