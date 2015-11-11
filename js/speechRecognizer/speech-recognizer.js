@@ -43,6 +43,7 @@
         var sentenceDic = null;
         var selectedSentences = null;
         var sentenceNumOnPage = 1;
+        var startPos = 3;
         var updateAnalysers = function (time) {
             // if (!analyserContext) {
             //     var canvas = document.getElementById("analyser");
@@ -256,8 +257,9 @@
             var start = sentenceId + (sentenceId - 1) * 10;
             var end = start + sentenceNumOnPage;
             selectedSentences = sentenceDic.slice(start, end);
+            selectedSentences = selectedSentences.slice(startPos);
             $("#sentenceSpeak").val(selectedSentences);
-            selectedSentences = sentenceDic.slice(start, end).join("<br>");
+            // selectedSentences = sentenceDic.slice(start, end).join("<br>");
             $("#sentenceShow").html(selectedSentences);
         };
 
