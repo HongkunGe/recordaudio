@@ -257,7 +257,7 @@
             var start = sentenceId + (sentenceId - 1) * 10;
             var end = start + sentenceNumOnPage;
             selectedSentences = sentenceDic.slice(start, end);
-            selectedSentences = selectedSentences.slice(startPos);
+            selectedSentences = selectedSentences.slice(startPos, selectedSentences.length);
             $("#sentenceSpeak").val(selectedSentences);
             // selectedSentences = sentenceDic.slice(start, end).join("<br>");
             $("#sentenceShow").html(selectedSentences);
