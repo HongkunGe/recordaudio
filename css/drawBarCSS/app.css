@@ -33,7 +33,7 @@ h1 {
 
 .wrapper {
 	height: 100%;
-	max-width: 800px;
+	/*max-width: auto;*/
 	margin: 0 auto;
 }
 
@@ -97,7 +97,21 @@ button, form a {
     padding: .5rem; 
     display: block;
 }
-
+textarea {
+  margin: 1rem auto 0.5rem;
+  width: 90%;
+  max-width: 80%;
+  height: 120px;
+  border: 3px solid #cccccc;
+  padding: 5px;
+  font-family: Tahoma, sans-serif;
+  font-size: 1.2rem;
+  background-image: url(bg.gif);
+  background-position: bottom right;
+  background-repeat: no-repeat;
+  text-align: center;
+  display: block;
+}
 button:hover, button:focus, form a:hover, form a:focus {
 	box-shadow: inset 1px 1px 2px rgba(0,0,0,0.7);
 }
