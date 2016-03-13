@@ -17,38 +17,45 @@ var stream;
 // grab the mute button to use below
 
 var mute = document.querySelector('.mute');
+var pause = document.querySelector('.pause');
+var infoPara = document.querySelector('#info');
 
 //set up the different audio nodes we will use for the app
 
-var analyser = audioCtx.createAnalyser();
-analyser.minDecibels = -90;
-analyser.maxDecibels = -10;
-analyser.smoothingTimeConstant = 0.85;
+var analyserSoundSource = audioCtx.createAnalyser();
+analyserSoundSource.minDecibels = -70;
+analyserSoundSource.maxDecibels = -10;
+analyserSoundSource.smoothingTimeConstant = 0.85;
 
-var distortion = audioCtx.createWaveShaper();
+var analyserStream = audioCtx.createAnalyser();
+analyserStream.minDecibels = -70;
+analyserStream.maxDecibels = -10;
+analyserStream.smoothingTimeConstant = 0.85;
+
 var gainNode = audioCtx.createGain();
 var biquadFilter = audioCtx.createBiquadFilter();
-var convolver = audioCtx.createConvolver();
 
-// distortion curve for the waveshaper, thanks to Kevin Ennis
-// http://stackoverflow.com/questions/22312841/waveshaper-node-in-webaudio-how-to-emulate-distortion
+var gainNodeStream = audioCtx.createGain();
+// set up canvas context for visualizer
 
-function makeDistortionCurve(amount) {
-  var k = typeof amount === 'number' ? amount : 50,
-    n_samples = 44100,
-    curve = new Float32Array(n_samples),
-    deg = Math.PI / 180,
-    i = 0,
-    x;
-  for ( ; i < n_samples; ++i ) {
-    x = i * 2 / n_samples - 1;
-    curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
-  }
-  return curve;
-};
+var canvas1 = document.querySelector('.visualizer#v1');
+var canvas2 = document.querySelector('.visualizer#v2');
+var intendedWidth = document.querySelector('.wrapper').clientWidth;
+var visualSelect = document.getElementById("visual");
+var drawVisualStream, drawVisualSource;
 
-// grab audio track via XHR for convolver node
+//=============Power=============
 
+var humanVoiceEnergy = 0;
+var totalEnergy = 0;
+var noiseLevel;
+
+// write to some file. 
+function collectSample(data){
+  document.getElementById("sampleDate").value += (data + '\n');
+  console.log(data);
+}
+//==========================
 var soundSource, concertHallBuffer;
 
 ajaxRequest = new XMLHttpRequest();
@@ -62,30 +69,30 @@ ajaxRequest.onload = function() {
   var audioData = ajaxRequest.response;
 
   audioCtx.decodeAudioData(audioData, function(buffer) {
+      
+      // generate audio after different procession, like low pass filter.
       concertHallBuffer = buffer;
       soundSource = audioCtx.createBufferSource();
       soundSource.buffer = concertHallBuffer;
+
+      soundSource.connect(analyserSoundSource);
+      analyserSoundSource.connect(biquadFilter);
+      biquadFilter.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      // visulize origin wave
+      visualizeSource(analyserSoundSource, canvas1); 
+      voiceChange();
+
+      // soundSource.connect(audioCtx.destination);
+      soundSource.loop = true;
+      soundSource.start();
+
     }, function(e){"Error with decoding audio data" + e.err});
 
-  //soundSource.connect(audioCtx.destination);
-  //soundSource.loop = true;
-  //soundSource.start();
 }
 
 ajaxRequest.send();
-
-// set up canvas context for visualizer
-
-var canvas = document.querySelector('.visualizer');
-var canvasCtx = canvas.getContext("2d");
-
-var intendedWidth = document.querySelector('.wrapper').clientWidth;
-
-canvas.setAttribute('width',intendedWidth);
-
-var visualSelect = document.getElementById("visual");
-
-var drawVisual;
 
 //main block for doing the audio recording
 
@@ -99,17 +106,14 @@ if (navigator.getUserMedia) {
 
       // Success callback
       function(stream) {
+         gainNodeStream.gain.value = 0;
          source = audioCtx.createMediaStreamSource(stream);
-         source.connect(analyser);
-         analyser.connect(distortion);
-         distortion.connect(biquadFilter);
-         biquadFilter.connect(convolver);
-         convolver.connect(gainNode);
-         gainNode.connect(audioCtx.destination);
+         source.connect(analyserStream);
+         analyserStream.connect(gainNodeStream);
+         gainNodeStream.connect(audioCtx.destination);
 
-      	 visualize();
+      	 visualizeStream(analyserStream, canvas2);
          voiceChange();
-
       },
 
       // Error callback
@@ -121,134 +125,207 @@ if (navigator.getUserMedia) {
    console.log('getUserMedia not supported on your browser!');
 }
 
-function visualize() {
+function visualizeStream(analyser, canvas) {
+
+  var canvasCtx = canvas.getContext("2d");
+  canvas.setAttribute('width',intendedWidth);
+  
   WIDTH = canvas.width;
   HEIGHT = canvas.height;
-
 
   var visualSetting = visualSelect.value;
   console.log(visualSetting);
 
-  if(visualSetting == "sinewave") {
-    analyser.fftSize = 2048;
-    var bufferLength = analyser.fftSize;
-    console.log(bufferLength);
-    var dataArray = new Uint8Array(bufferLength);
-
-    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-
-    function draw() {
-
-      drawVisual = requestAnimationFrame(draw);
-
-      analyser.getByteTimeDomainData(dataArray);
-
-      canvasCtx.fillStyle = 'rgb(200, 200, 200)';
-      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      canvasCtx.lineWidth = 2;
-      canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-
-      canvasCtx.beginPath();
-
-      var sliceWidth = WIDTH * 1.0 / bufferLength;
-      var x = 0;
-
-      for(var i = 0; i < bufferLength; i++) {
-   
-        var v = dataArray[i] / 128.0;
-        var y = v * HEIGHT/2;
-
-        if(i === 0) {
-          canvasCtx.moveTo(x, y);
-        } else {
-          canvasCtx.lineTo(x, y);
-        }
-
-        x += sliceWidth;
-      }
-
-      canvasCtx.lineTo(canvas.width, canvas.height/2);
-      canvasCtx.stroke();
-    };
-
-    draw();
-
-  } else if(visualSetting == "frequencybars") {
-    analyser.fftSize = 256;
+    analyser.fftSize = 1024;
     var bufferLength = analyser.frequencyBinCount;
     console.log(bufferLength);
     var dataArray = new Uint8Array(bufferLength);
 
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
+    // var show1 = Number.MIN_VALUE, show2 = Number.MAX_VALUE;
+
     function draw() {
-      drawVisual = requestAnimationFrame(draw);
+      drawVisualStream = requestAnimationFrame(draw, canvas);
 
       analyser.getByteFrequencyData(dataArray);
 
       canvasCtx.fillStyle = 'rgb(0, 0, 0)';
       canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      var barWidth = (WIDTH / bufferLength) * 2.5;
-      var barHeight;
+      var barWidth = (WIDTH / bufferLength) * 3;
+      var barHeight, frequency;
       var x = 0;
 
+      humanVoiceEnergy = 0;
+      totalEnergy = 0;
+
       for(var i = 0; i < bufferLength; i++) {
+        // show1 = Math.max(show1, dataArray[i]);
+        // show2 = Math.min(show2, dataArray[i]);
         barHeight = dataArray[i];
 
-        canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
-        canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+        frequency = i * audioCtx.sampleRate / analyser.fftSize;
+        var freqShow = parseInt(frequency);
+        if(freqShow % 50 == 0 || i == 2 || i == 7){
+          canvasCtx.fillText(freqShow, x, HEIGHT);
+        }
+        if(barHeight > 50){
+          if(freqShow >= 80 && freqShow <= 300){
+            humanVoiceEnergy += barHeight * barHeight;
+          }
 
+          totalEnergy += barHeight * barHeight;
+        }
+
+
+        canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+        canvasCtx.fillRect(x, HEIGHT - barHeight / 2 - 12, barWidth, barHeight / 2);
+        
         x += barWidth + 1;
       }
+
+      if(totalEnergy > 20000 && drawVisualStream % 10 == 0){
+        collectSample(humanVoiceEnergy + ' ' + humanVoiceEnergy / totalEnergy);
+      }
+      
+      // console.log(show2 + ' ' + show1);
+
     };
 
     draw();
 
-  } else if(visualSetting == "off") {
+}
+function visualizeSource(analyser, canvas) {
+
+  var canvasCtx = canvas.getContext("2d");
+  canvas.setAttribute('width',intendedWidth);
+  
+
+  WIDTH = canvas.width;
+  HEIGHT = canvas.height;
+
+  var visualSetting = visualSelect.value;
+  console.log(visualSetting);
+
+    analyser.fftSize = 1024;
+    var bufferLength = analyser.frequencyBinCount;
+    console.log(bufferLength);
+    var dataArray = new Uint8Array(bufferLength);
+
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-    canvasCtx.fillStyle = "red";
-    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-  }
+
+    
+
+    function draw() {
+      drawVisualSource = requestAnimationFrame(draw, canvas);
+
+      analyser.getByteFrequencyData(dataArray);
+
+      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      var barWidth = (WIDTH / bufferLength) * 3;
+      var barHeight, frequency;
+      var x = 0;
+
+      humanVoiceEnergy = 0;
+      totalEnergy = 0;
+
+      
+      for(var i = 0; i < bufferLength; i++) {
+        barHeight = dataArray[i];
+
+        frequency = i * audioCtx.sampleRate / analyser.fftSize;
+        var freqShow = parseInt(frequency);
+        if(freqShow % 50 == 0 || i == 2 || i == 7){
+          canvasCtx.fillText(freqShow, x, HEIGHT);
+        }
+
+        if(freqShow >= 80 && freqShow <= 300){
+          humanVoiceEnergy += barHeight * barHeight;
+        }
+
+        totalEnergy += barHeight * barHeight;
+
+        canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+        canvasCtx.fillRect(x,HEIGHT-barHeight/2 - 12,barWidth,barHeight/2);
+        
+        x += barWidth + 1;
+      }
+
+      // if(humanVoiceEnergy / totalEnergy > 0.5){
+      //   console.log(humanVoiceEnergy / totalEnergy);
+      // }
+
+    };
+    
+    draw();
 
 }
-
 function voiceChange() {
   
-  distortion.oversample = '4x';
   biquadFilter.gain.value = 0;
-  convolver.buffer = undefined;
 
   var voiceSetting = voiceSelect.value;
   console.log(voiceSetting);
+  console.log(audioCtx.sampleRate);
 
-  if(voiceSetting == "distortion") {
-    distortion.curve = makeDistortionCurve(400);
-  } else if(voiceSetting == "convolver") {
-    convolver.buffer = concertHallBuffer;
-  } else if(voiceSetting == "biquad") {
+  if(voiceSetting == "biquad") {
     biquadFilter.type = "lowshelf";
     biquadFilter.frequency.value = 1000;
     biquadFilter.gain.value = 25;
-  } else if(voiceSetting == "off") {
+  } 
+  else if(voiceSetting == "off") {
     console.log("Voice settings turned off");
+  } 
+  else if(voiceSetting == "bandpass"){
+    biquadFilter.type = "bandpass";
+    biquadFilter.frequency.value = 190;
+    biquadFilter.gain.value = 1;
+    biquadFilter.Q.value = 0.88;
   }
-
+  else if(voiceSetting == "lowpass"){
+    biquadFilter.type = "lowpass";
+    biquadFilter.frequency.value = 300;
+    biquadFilter.Q.value = 0.707;
+  }
 }
 
 // event listeners to change visualize and voice settings
 
 visualSelect.onchange = function() {
-  window.cancelAnimationFrame(drawVisual);
-  visualize();
+  window.cancelAnimationFrame(drawVisualStream);
+  pause.id = "";
+  visualizeStream(analyserStream, canvas2);
+  pause.innerHTML = "Pause";
 }
 
 voiceSelect.onchange = function() {
+  window.cancelAnimationFrame(drawVisualStream);
   voiceChange();
+  pause.id = "";
+  visualizeStream(analyserStream, canvas2);
+  pause.innerHTML = "Pause";
 }
 
 mute.onclick = voiceMute;
+
+canvas2.onclick = pauseBtn;
+pause.onclick = pauseBtn;
+
+function pauseBtn(){
+  if(pause.id == ""){
+    pause.id = "paused"
+    window.cancelAnimationFrame(drawVisualStream);
+    pause.innerHTML = "Start";
+  } else {
+    pause.id = "";
+    visualizeStream(analyserStream, canvas2);
+    pause.innerHTML = "Pause";
+  }
+}
+
 
 function voiceMute() {
   if(mute.id == "") {
@@ -261,3 +338,4 @@ function voiceMute() {
     mute.innerHTML = "Mute";
   }
 }
+
