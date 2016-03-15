@@ -43,7 +43,8 @@ var SampleApp = function() {
         }
 
         //  Local cache for static content.
-        self.zcache['index.html'] = fs.readFileSync('./index.html');
+        self.zcache['index.html'] = fs.readFileSync('./public/index.html');
+        self.zcache['freq.html'] = fs.readFileSync('./public/freq.html');
     };
 
 
@@ -100,9 +101,9 @@ var SampleApp = function() {
             res.send("<html><body><img src='" + link + "'></body></html>");
         };
 
-        self.routes['/frequency'] = function(req, res) {
+        self.routes['/freq'] = function(req, res) {
             res.setHeader('Content-Type', 'text/html');
-            res.send(self.cache_get('frequency.html') );
+            res.send(self.cache_get('freq.html') );
         };
 
         self.routes['/'] = function(req, res) {
@@ -115,7 +116,7 @@ var SampleApp = function() {
     /**
      *  Initialize the server (express) and create the routes and register
      *  the handlers.
-     */
+     */ 
     self.initializeServer = function() {
         self.createRoutes();
         self.app = express.createServer();
@@ -125,7 +126,7 @@ var SampleApp = function() {
             self.app.get(r, self.routes[r]);
         }
         ['css', 'img', 'js', 'plugin', 'lib'].forEach(function (dir){
-            self.app.use('/'+ dir, express.static(__dirname+'/'+dir));
+            self.app.use('/'+ dir, express.static(__dirname+'/public/'+dir));
         });
     };
 
