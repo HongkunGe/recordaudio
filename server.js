@@ -1,8 +1,13 @@
 #!/bin/env node
-//  OpenShift sample Node application
+
+'use strict';
+
 var express = require('express');
 var fs      = require('fs');
-
+var bodyParser = require('body-parser');
+var qs = require('querystring');
+var request = require('request');
+var config = require('./ibmWatson.json');
 
 /**
  *  Define the sample application.
@@ -119,7 +124,7 @@ var SampleApp = function() {
      */ 
     self.initializeServer = function() {
         self.createRoutes();
-        self.app = express.createServer();
+        self.app = express();
         // self.app.use(express.static(__dirname));
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) {
@@ -128,6 +133,51 @@ var SampleApp = function() {
         ['css', 'img', 'js', 'plugin', 'lib'].forEach(function (dir){
             self.app.use('/'+ dir, express.static(__dirname+'/public/'+dir));
         });
+
+        // TODO: Deploy API for IBM Watson Speech-to-text
+
+        self.app.use(bodyParser.urlencoded({extended : true}));
+        self.app.use(express.bodyParser());
+        self.app.set('json spaces', 2);
+        self.app.set('json replacer', null);
+
+        // Test API
+        self.app.use('/api', function(req, res){
+            res.json({'message': 'Intelligibility API'});
+        });
+
+        self.app.get('/token', function(req, res){
+            var token;
+
+            var authTokenURL = 'https://stream.watsonplatform.net/authorization/api/v1/token';
+            var url = 'https://stream.watsonplatform.net/speech-to-text/api/';
+
+            var username = config['credentials']['username'];
+            var password = config['credentials']['password'];
+
+            authTokenURL = authTokenURL + '?' + 'url=' + url;
+
+            var options = {
+                'url': authTokenURL,
+                'auth': {
+                    'user': username,
+                    'pass': password,
+                    'sendImmediately': false
+                }
+            };
+
+            request(options, function(err, resToken, body){
+                if(!err && resToken.statusCode == 200){
+                    res.json({'token': body});
+                } else if( err ){
+                    res.json({'Error occured': err});
+                } else if( resToken.statusCode != 200 ){
+                    res.json({'Error occured': resToken.statusCode});
+                }
+            });
+            
+        });
+
     };
 
 
