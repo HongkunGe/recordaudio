@@ -23,8 +23,6 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <!-- Custom Theme JavaScript -->
-    <script src="js/clean-blog.min.js"></script>
 
     <link rel="stylesheet" type="text/css" href="css/speechRecognizer.css">
     <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
@@ -33,115 +31,25 @@
 </head>
 <body>
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header page-scroll">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="https://recordaudio-hongkun.apps.unc.edu/">Intelligibility</a>
-            </div>
+    <div>
+        <p>Clich Button below for noise detection.</p>
+        <br/>
+        <button id = "noiseDetection" type="button" class="btn btn-primary" >Noise Detection</button>
 
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="https://recordaudio-hongkun.apps.unc.edu/">Home</a>
-                    </li>
-                    <li>
-                        <a href="https://recordaudio-hongkun.apps.unc.edu/">About</a>
-                    </li>
-                    <li>
-                        <a href="https://recordaudio-hongkun.apps.unc.edu/">Sample Post</a>
-                    </li>
-                    <li>
-                        <a href="https://recordaudio-hongkun.apps.unc.edu/">Contact</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container --> 
-    </nav>
+        <p>Clich Button below to start the test.</p>
+        <br/>
+        <button id = "startTest" type="button" class="btn btn-primary" >Start Test</button>
 
-    <!-- Page Header -->
-    <!-- Set your background image for this header on the line below. -->
-    <header class="intro-header" style="background-image: url('img/home-bg.jpg')">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                    <div class="site-heading">
-                        <h1 font-size = "12">You Talk We Hear</h1>
-                        <hr class="small">
-                        <span class="subheading">Support our work for healthy future of all the people.</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+        <p>There will be 10 sentences in each test group. </p>
+        <button id = "next" type="button" class="btn btn-warning" >Start</button>
+        <button id = "play" type="button" class="btn btn-primary" >Play</button> 
+        <a id="save" href="#" class="btn btn-link">save</a>
 
-
-
-  <div  class = "container"> 
-    <div id = "main" class = "row">
-
-        <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-            <!-- <h2 id="about" align = "left">Here is your text.</h2> -->
-            <div id = "sentenceGroup">
-                <p align = "left" style = "font-size:120%">Select the Sentence Number to be measured and recorded. 
-                    &nbsp;&nbsp;
-                    <input id = "sentenceId" type = "number" min="1" max="10" value = "2" class="form-control" style="width:auto;display:inline-block;">
-                    </input>
-                </p>
-                <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
-                <div class = "description" align = "left" style = "visibility: hidden;">
-                    Your score of the sentence recorded is &nbsp;&nbsp;<span  id = "scoreShow" ></span> 
-                </div>
-
-                <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
-
-            </div>            
-            
-            <div id="speech-content-elements">
-                <textarea id="speech-page-content" name="pageContent" rows="10" readonly></textarea>
-                <div class="speech-content-mic speech-mic" ></div>
-            </div>
-            <div>
-                <br/>
-                <button id = "reset" type="button" class="btn btn-warning" >Reset</button>
-                <button id = "play" type="button" class="btn btn-primary" >Play</button>  
-                <button id = "score" type="button" class="btn btn-success" >Score</button>  
-                <button id = "email" type="button" class="btn btn-info" >Send email</button>
-                <a id="save" href="#" class="btn btn-link">save</a>
-
-                <br/>
-                <br/>
-                <div class = "description" align = "left">Your audio and text will be our treasured sample for research. Please click SEND EMAIL button to send us the audio and text. Thank you very much. </div>
-                <br/>
-                <br/>
-            </div>
-        </div>
-
-        
-<!--         <div id="content" class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-            <fieldset>
-                <legend align = "left">Sentence</legend>
-                <div id = "sentenceGroup">
-                    <p align = "left" style = "font-size:150%">Select the Sentence Number to be measured and recorded. <input id = "sentenceId" type = "number" min="1" max="10" value = "1" class="form-control" style="width:auto;"></input></p>
-                    <p id = "sentenceShow" type="text" ></p>
-                    <input id = "sentenceSpeak" type="text" style = "visibility: hidden;" x-webkit-speech/>
-                     
-                </div>
-            </fieldset>
-        </div> -->
-
+        <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
+        <pre id = "reportShow" type="text" style = ""></pre>
     </div>
-  </div>
+
+<!--     <div class = 'speech-mic'></div> -->
 
 
 </body>

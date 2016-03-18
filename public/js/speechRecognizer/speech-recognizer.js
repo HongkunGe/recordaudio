@@ -1,290 +1,120 @@
 (function($) {
 
     $(document).ready(function() {
+        navigator.getUserMedia = (navigator.getUserMedia ||
+                                  navigator.webkitGetUserMedia || 
+                                  navigator.mozGetUserMedia || 
+                                  navigator.msGetUserMedia);
 
-        window.speechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
-        
-        if(!('speechSynthesis' in window && 'speechRecognition' in window)){
-            alert("Web Speech API not supported in your browser. Please use latest Chrome for better experience.");
-            return;
-        }
+        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        try {
-            var recognition = new speechRecognition();
-        } catch(e) {
-            var recognition = Object;
-        }
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        var recognizing = false;
-
-        var interimResult = '';
-        var textArea = $('#speech-page-content');
-        var textAreaID = 'speech-page-content';
-
-        /*Play audio of example sentences */
-
-        var voiceSelect = null;
-        var voices = speechSynthesis.getVoices();
-        /*Record the audio and save the audio*/
-
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        var audioContext = new AudioContext();
-        var audioInput = null,
-            realAudioInput = null,
-            inputPoint = null,
-            audioRecorder = null;
-        var rafID = null;
-        var analyserContext = null;
-        var canvasWidth, canvasHeight;
+        var source;
+        var stream;
+        var analyzer = audioContext.createAnalyser();
+        var gainNode = audioContext.createGain();
+        var audioRecorder = null;
         var recIndex = 0;
 
-        var sentenceIdINITIAL = 2;
-        var sentenceId = sentenceIdINITIAL;
-        var sentenceDic = null;
-        var selectedSentences = null;
-        var sentenceNumOnPage = 1;
+        var token = null;
+        var wsURI = "wss://stream.watsonplatform.net/speech-to-text/api/v1/recognize?watson-token=";
+        var webSocket = null;
+
+        var startSig = {"action": "start", "content-type": "audio/wav;rate=22050"};
+        var stopSig = {"action": "stop"};
+
+        var selectedSentences;             // selected sentence group.
+        var sentenceNumInGroup = 10;
+        var sentenceGroupId = 1;
+        var sentenceId = 1;
         var startPos = 3;
-        var updateAnalysers = function (time) {
-            // if (!analyserContext) {
-            //     var canvas = document.getElementById("analyser");
-            //     canvasWidth = canvas.width;
-            //     canvasHeight = canvas.height;
-            //     analyserContext = canvas.getContext('2d');
-            // }
 
-            // /*TODO: Enable the draw code here.*/
-            // // analyzer draw code here
-            // {
-            //     var SPACING = 3;
-            //     var BAR_WIDTH = 1;
-            //     var numBars = Math.round(canvasWidth / SPACING);
-            //     var freqByteData = new Uint8Array(analyserNode.frequencyBinCount);
+        var totalScore = 0;
+        var report = {
+            'emptyResultsReturned': 0,
+            'sentenceCount': 0,
+            'average': 0,
+            'results':[]
+        };
 
-            //     analyserNode.getByteFrequencyData(freqByteData); 
+        var getStream = function(stream){
+            gainNode.gain.value = 0;
 
-            //     analyserContext.clearRect(0, 0, canvasWidth, canvasHeight);
-            //     analyserContext.fillStyle = '#F6D565';
-            //     analyserContext.lineCap = 'round';
-            //     var multiplier = analyserNode.frequencyBinCount / numBars;
+            source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyzer);
+            analyzer.connect(gainNode);            
+            gainNode.connect(audioContext.destination);
 
-            //     // Draw rectangle for each frequency bin.
-            //     for (var i = 0; i < numBars; ++i) {
-            //         var magnitude = 0;
-            //         var offset = Math.floor( i * multiplier );
-            //         // gotta sum/average the block, or we miss narrow-bandwidth spikes
-            //         for (var j = 0; j< multiplier; j++)
-            //             magnitude += freqByteData[offset + j];
-            //         magnitude = magnitude / multiplier;
-            //         var magnitude2 = freqByteData[i * multiplier];
-            //         analyserContext.fillStyle = "hsl( " + Math.round((i*360)/numBars) + ", 100%, 50%)";
-            //         analyserContext.fillRect(i * SPACING, canvasHeight, BAR_WIDTH, -magnitude);
-            //     }
-            // }
-            
-            // rafID = window.requestAnimationFrame( updateAnalysers );
-        };        
-
-        var gotStream = function(stream) {
-            inputPoint = audioContext.createGain();
-
-            // Create an AudioNode from the stream.
-            realAudioInput = audioContext.createMediaStreamSource(stream);
-            audioInput = realAudioInput;
-            audioInput.connect(inputPoint);
-
-        //    audioInput = convertToMono( input );
-
-            analyserNode = audioContext.createAnalyser();
-            analyserNode.fftSize = 2048;
-            inputPoint.connect( analyserNode );
-
-            audioRecorder = new Recorder( inputPoint );
-
-            zeroGain = audioContext.createGain();
-            zeroGain.gain.value = 0.0;
-            inputPoint.connect( zeroGain );
-            zeroGain.connect( audioContext.destination );
-            updateAnalysers();
-        };    
-
+            audioRecorder = new Recorder(source);
+        };
 
         var doneEncoding = function ( blob ) {
+                        
+            console.log('Making request to Watson......');
+
+            websocket.send(blob);
+            setTimeout(function(){
+                websocket.send(JSON.stringify(stopSig));
+            }, 1500); 
+
+            
+            
             Recorder.setupDownload( blob, "myRecording" + ((recIndex<10)?"0":"") + recIndex + ".wav" );
             recIndex++;
         };
 
         var gotBuffers = function ( buffers ) {
-            var canvas = document.getElementById( "wavedisplay" );
-
-            /*Enable draw code here.*/
-            // drawBuffer( canvas.width, canvas.height, canvas.getContext('2d'), buffers[0] );
-
             // the ONLY time gotBuffers is called is right after a new recording is completed - 
             // so here's where we should set up the download.
             audioRecorder.exportWAV( doneEncoding );
         };
 
-        var toggleRecording = function ( e ) {
-            if (e.classList.contains("recording")) {
-                // stop recording
-                audioRecorder.stop();
-                e.classList.remove("recording");
-                audioRecorder.getBuffers( gotBuffers );
-            } else {
-                // start recording
-                if (!audioRecorder)
-                    return;
-                e.classList.add("recording");
-                audioRecorder.clear();
-                audioRecorder.record();
-            }
-        };
-
-        var initAudio = function(){
-            if(!navigator.getUserMedia)
-                navigator.getUserMedia = navigator.webkitGetUserMedia;
-            if(!navigator.cancelAnimationFrame)
-                navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame;
-            if(!navigator.requestAnimationFrame)
-                navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame;
-            navigator.getUserMedia(
+        var initialAudio = function() {
+            if(navigator.getUserMedia) {
+                console.log('getUserMedia Supported!');
+                navigator.getUserMedia(
                 {
-                    "audio": {
-                        "mandatory": {
-                            "googEchoCancellation": "false",
-                            "googAutoGainControl": "false",
-                            "googNoiseSuppression": "false",
-                            "googHighpassFilter": "false"
-                        },
-                        "optional": []
-                    },
-                },
-                gotStream,
-                function(e){
-                alert('Error Getting Audio!');
-                console.log(e);
-            });
+                    audio: true
+                }, 
+
+                //Successful Callback
+                getStream,
+
+                // Error Callback
+                function(err){
+                    console.log('Following Error occured:' + err);
+                });
+            } else {
+                console.log('getUserMedia Not Supported!');
+            }
         };
 
         var loadSentence = function(){
             $.get('js/speechRecognizer/harvsents.txt', function(sentence){
-                sentenceDic = sentence.split("\n");
-                showSentence(sentenceId);
+                // load a group of sentences into variable sentenceDic.
+                var sentenceDic = sentence.split("\n");
+
+                sentenceGroupId = parseInt(sentenceGroupId);
+                var start = sentenceGroupId + (sentenceGroupId - 1) * 10;
+                var end = start + sentenceNumInGroup;
+                // only get the first sentence.
+                selectedSentences = sentenceDic.slice(start, end);
             }, 'text');
         };
-        var sendMail = function(to) {
-            var link = "mailto:"  + to + 
-                     + "?cc=hongkun@cs.unc.edu"
-                     + "&subject=" + encodeURI("This is my subject")
-                     + "&body=" + encodeURI($('#speech-page-content').val());
 
-            window.location.href = link;
-            return false;
+        var showSentence = function( id ) {
+            $('#sentenceShow').html(selectedSentences[id]);
         };
 
-        var loadVoices = function(){
-            voices = speechSynthesis.getVoices();
-        };
-        var speak = function(text){
-            var msg = new SpeechSynthesisUtterance();
-            
-
-            // Set the attributes of voice;
-            // msg.volume = parseFloat(volumeInput.value);
-            // msg.rate = parseFloat(rateInput.value);
-            // msg.pitch = parseFloat(pitchInput.value);
-
-            // msg.voice = speechSynthesis.getVoices().filter(function(voice){
-            //     return voice.name = "Google US English";
-            // })[0];
-            
-            msg.voice = voices[1];
-            console.log(msg.voice);
-            msg.text = text;
-            //msg.voiceURI = 'native';
-            msg.volume = 1;
-            msg.rate = 1;
-            msg.pitch = 1;
-            //queue the utterance.
-            speechSynthesis.speak(msg);
-        };
-
-        initAudio();
-        loadSentence();
-
-        $('.speech-mic').click(function(){
-            toggleRecording(this);
-            if(recognizing){
-                recognition.stop();
-                return;
-            }
-            startRecognition();
-        });
-
-        var startRecognition = function() {
-            textArea.focus();
-            recognition.start();
-        };
-
-
-        recognition.onstart = function(){
-            recognizing = true;
-            $('#email').prop('disabled', true);
-            $('#score').prop('disabled', true);
-            $('#play').prop('disabled', true);
-            $('#save').prop('disabled', true);
-
-            $('.speech-content-mic').addClass('speech-mic-works');
-        };
-        recognition.onresult = function (event) {
-            var pos = textArea.getCursorPosition() - interimResult.length;
-            textArea.val(textArea.val().replace(interimResult, ''));
-            interimResult = '';
-            textArea.setCursorPosition(pos);
-            for (var i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    insertAtCaret(textAreaID, event.results[i][0].transcript);
-                } else {
-                    isFinished = false;
-                    insertAtCaret(textAreaID, event.results[i][0].transcript + '\u200B');
-                    interimResult += event.results[i][0].transcript + '\u200B';
-                }
-            }
-        };
-
-        recognition.onend = function() {
-            recognizing = false;
-            $('#email').prop('disabled', false);
-            $('#score').prop('disabled', false);
-            $('#play').prop('disabled', false);
-            $('#save').prop('disabled', false);
-
-            $('.speech-content-mic').removeClass('speech-mic-works');
-
-        };
-
-        var showSentence = function(sentenceId){
-            sentenceId = parseInt(sentenceId);
-            var start = sentenceId + (sentenceId - 1) * 10;
-            var end = start + sentenceNumOnPage;
-            // only get the first sentence.
-            selectedSentences = sentenceDic.slice(start, end)[0];
-            selectedSentences = selectedSentences.slice(startPos, selectedSentences.length);
-            $("#sentenceSpeak").val(selectedSentences);
-            // selectedSentences = sentenceDic.slice(start, end).join("<br>");
-            $("#sentenceShow").html(selectedSentences);
-        };
-
-        var sentenceScore = function(){
-            // calculate the sentence distance based on the edit distance of two sentences.
-
-            // Both tranform to lowercase and eliminate the last char '.'
-            var recognized = $("#speech-page-content").val().toLowerCase();
+        // Use edit distance between the two sentences to calculate the similarity value.
+        var sentenceScore = function(stRecogized, stOriginal){
+            var recognized = stRecogized.toLowerCase();
             recognized = $.trim(recognized);
+            recognized = recognized.trim(" .");
 
-            var original = selectedSentences.toLowerCase();
-            original = $.trim(original).slice(0, -1);
+            var original = stOriginal.toLowerCase();
+            // eliminate the first number char. 
+            original = $.trim(original).slice(startPos, original.length);
+            original = original.trim(" ").replace(/\.$/, "");
 
             // Get the edit distance between the two sentences.
             var dp = new Array(original.length + 1);
@@ -308,43 +138,125 @@
             }
             var scoreFinal = Math.floor((original.length - dp[original.length][recognized.length]) / original.length * 100); 
             return scoreFinal;
+        }
+
+        var onMessage = function (evt) {
+            console.log("onMessage: recognition result in json format: " + evt.data);
+
+            // 'Next ?/10' button should be disabled before the results messages are received. 
+            var evtData = $.parseJSON(evt.data);
+            if('results' in evtData){
+
+                // All all the details to the report.
+                if(evtData['results'].length == 0) {
+                    // Sometimes results is empty. Eliminate this one.
+                    report['emptyResultsReturned'] ++;
+                } else {
+                    report['sentenceCount'] ++; 
+                    var stRecogized = evtData['results'][0]['alternatives'][0]['transcript'];
+                    var stOriginal = selectedSentences[sentenceId - 1];
+
+                    var item = {
+                        'originalSentence': stOriginal,
+                        'recogizedSentence': stRecogized,
+                        'score': sentenceScore(stRecogized, stOriginal)
+                    };
+                    report['results'].push(item);
+                    totalScore += item['score'];
+                }
+
+                // When sentenceId == 10, we won't enable 'Next' Button, but switch to ''GetReport' button and enable it.
+                sentenceId++;
+                if(sentenceId == 10) {
+                    report['average'] = Math.round(totalScore / report['sentenceCount']);
+                }
+                $('#next').prop('disabled', false);
+            }
         };
-        $("#sentenceId").change(function(){
-            sentenceId = $(this).val();
-            showSentence(sentenceId);
-        });
-        // The buttons are initially disabled.
-        $('#email').prop('disabled', true);
-        $('#score').prop('disabled', true);
-        $('#save').prop('disabled', true);
-        $("#email").click(function(){
-            sendMail('hongkun@cs.unc.edu');
+
+        var onClose = function(evt) {
+            console.log("Connection is Closed!");
+        };
+
+        var onOpen = function(evt) {
+            console.log("Connection is Open!");
+        };
+
+        var getToken = function(){
+            $.ajax({
+                type: 'GET',
+                url: '/token',
+                success: function (data, text) {
+                    console.log(data);
+                    token = data['token'];
+                    wsURI = wsURI + token;
+                    websocket = new WebSocket(wsURI);
+
+                    websocket.onmessage = function(evt) { onMessage(evt); };
+                    websocket.onopen = function(evt) { onOpen(evt); };
+                    websocket.onclose = function(evt) { onClose(evt); };
+                },
+                error: function (request, status, error) {
+                    console.log('Error occured: ' + error);
+                }
+
+            });
+        };
+
+        $('#next').click(function(){
+            if (this.classList.contains("recording") && sentenceId <= 10) {
+                // stop recording
+                audioRecorder.stop();
+                console.log('Your voice has been recorded.');
+                this.classList.remove("recording");
+                
+                // disable 'Next' button until an message containing 'results' is received.
+                var showId = sentenceId + 1;
+                if(showId <= 10) {
+                    $(this).text('Next ' + showId + '/10');
+                    $(this).prop('disabled', true);                    
+                } else {
+                    // showId is 11 now. all the tests have been finished. Last sending action will be finished.
+                    $(this).text('Get Report!');
+                    $(this).prop('disabled', true); 
+                }
+
+                audioRecorder.getBuffers( gotBuffers );
+
+            } else if( !(this.classList.contains("recording")) && sentenceId <= 10){
+                // start recording
+                if (!audioRecorder)
+                    return;
+                console.log('Recording your voice......');
+
+                // Send start signal 
+                websocket.send(JSON.stringify(startSig));
+
+                // start recording
+                this.classList.add("recording");
+                audioRecorder.clear();
+                audioRecorder.record();
+
+                // Show the sentence that the user should be reading now.
+                showSentence(sentenceId - 1);
+                $(this).text('Submit!');
+
+            } else {
+                // This block happens when sentenceId == 11. We will show the report and finally we will disable it.
+                $(this).prop('disabled', true);
+                $('#reportShow').text(JSON.stringify(report, null, 4));
+            }
         });
 
-        
-        $("#score").click(function(){
-            testScore = sentenceScore();
-            $("#sentenceGroup .description").css("visibility", "visible");
-            $("#scoreShow").html(testScore);
+        $('#noiseDetection').click(function(){
             
         });
-
-        /*Play audio of sentence as an example*/
-        $("#play").click(function(){
-            speak($("#sentenceSpeak").val());
+        
+        $('#startTest').click(function(){
+            getToken();
+            loadSentence();
         });
 
-        /*Reset all the states of the page*/
-        $("#reset").click(function(){
-            $("#sentenceGroup .description").css("visibility", "hidden");
-            $("#speech-page-content").val('');
-            sentenceId = sentenceIdINITIAL;
-        });
-
-
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = function(e) {
-            loadVoices();
-        };
+        initialAudio();
     });
 })(jQuery);
