@@ -24,13 +24,8 @@
     <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
     <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
 
+    <link rel="stylesheet" type="text/css" href="css/speechRecognizer.css">
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
 
 </head>
 
@@ -95,37 +90,37 @@
     <section id="NoiseTest" class="container content-section text-center">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2">
-              <div class="wrapper">
-                <h2>Noise Test</h2>
+                <div class="wrapper">
+                    <h2>Noise Test</h2>
 
-                <canvas id = "v2" class="visualizer" width="100%" height="200"></canvas>
-                <form class="controls">
-                    <div>
-                        Info
-                        <p id = "info"></p>
-                    </div>
-                    <div>
-                        <label for="visual">Visualizer setting</label>
-                        <select id="visual" name="visual">
-                            <option value="sinewave">Sinewave</option>
-                            <option value="frequencybars" selected>Frequency bars</option>
-                            <option value="off">Off</option>
-                        </select>
-                    </div>
-                    <div>
-                        <a class="mute">Mute</a>
-                    </div>
-                    <div>
-                        <a class="pause">Pause</a>
-                    </div>
-                    <div>
-                        <textarea id="sampleDate"></textarea>
-                    </div>
-                </form>
+                    <canvas id = "v2" class="visualizer" width="100%" height="200"></canvas>
+                    <form class="controls">
+                        <div>
+                            Info
+                            <p id = "info"></p>
+                        </div>
+                        <div>
+                            <label for="visual">Visualizer setting</label>
+                            <select id="visual" name="visual">
+                                <option value="sinewave">Sinewave</option>
+                                <option value="frequencybars" selected>Frequency bars</option>
+                                <option value="off">Off</option>
+                            </select>
+                        </div>
+                        <div>
+                            <a class="mute">Mute</a>
+                        </div>
+                        <div>
+                            <a class="pause">Pause</a>
+                        </div>
+                        <div>
+                            <textarea id="sampleDate"></textarea>
+                        </div>
+                    </form>
 
-                <a href="#VoiceTest" class="btn btn-circle page-scroll">
-                    <i class="fa fa-angle-double-down animated"></i>
-                </a>
+                    <a href="#VoiceTest" class="btn btn-circle page-scroll">
+                        <i class="fa fa-angle-double-down animated"></i>
+                    </a>
               </div>
             </div>
         </div>
@@ -136,9 +131,19 @@
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2">
                 <h2>Voice Test</h2>
-                <p>Grayscale is a free Bootstrap 3 theme created by Start Bootstrap. It can be yours right now, simply download the template on <a href="http://startbootstrap.com/template-overviews/grayscale/">the preview page</a>. The theme is open source, and you can use it for any purpose, personal or commercial.</p>
-                <p>This theme features stock photos by <a href="http://gratisography.com/">Gratisography</a> along with a custom Google Maps skin courtesy of <a href="http://snazzymaps.com/">Snazzy Maps</a>.</p>
-                <p>Grayscale includes full HTML, CSS, and custom JavaScript files along with LESS files for easy customization.</p>
+                <div>
+                    <p>Clich Button below to start the test.</p>
+                    <br/>
+                    <button id = "startTest" type="button" class="btn btn-primary" >Start Test</button>
+
+                    <p>There will be 10 sentences in each test group. </p>
+                    <button id = "next" type="button" class="btn btn-warning" >Start</button>
+                    <button id = "play" type="button" class="btn btn-primary" >Play</button>
+                    <a id="save" href="#" class="btn btn-link">save</a>
+
+                    <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
+                    <pre id = "reportShow" type="text" style = ""></pre>
+                </div>
                 <a href="#download" class="btn btn-circle page-scroll">
                     <i class="fa fa-angle-double-down animated"></i>
                 </a>
@@ -209,6 +214,10 @@
     <!-- Custom Theme JavaScript -->
     <script src="decoration/js/grayscale.js"></script>
 
+    <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
+    <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script>
+    <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
+    
 </body>
 
 </html>

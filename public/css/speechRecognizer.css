@@ -4,7 +4,7 @@ body {
     font-size: 13px;
 }
 p{
-   text-align: left;
+   /*text-align: left;*/
 }
 /*#main{
     display: table;
@@ -105,7 +105,7 @@ p{
 }
 
 
-input{  
+input{
     height: 0ch;
     width: 0ch; /* sets the width to 40 times the width of the digit “0” */
 }
