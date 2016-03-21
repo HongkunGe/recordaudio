@@ -17,11 +17,11 @@ h1, h2, label {
   font-size: 3rem;
   font-family: 'Nova Square', cursive;
   text-align: center;
-  color: black;
+  /*color: black;
   text-shadow: -1px -1px 1px #aaa,
                0px 1px 1px rgba(255,255,255,0.5),
                1px 1px 2px rgba(255,255,255,0.7),
-               0px 0px 2px rgba(255,255,255,0.4);
+               0px 0px 2px rgba(255,255,255,0.4);*/
   margin: 0;
 }
 
@@ -81,19 +81,19 @@ canvas {
 
 /* || button styling */
 
-button, form a {    
+button, form a {
     background-color: #0088cc;
-    background-image: linear-gradient(to bottom,  #0088cc 0%,#0055cc 100%); 
-    text-shadow: 1px 1px 1px black;  
+    background-image: linear-gradient(to bottom,  #0088cc 0%,#0055cc 100%);
+    text-shadow: 1px 1px 1px black;
     text-align: center;
     color: white;
     border: none;
     width: 90%;
     margin: 1rem auto 0.5rem;
     max-width: 80%;
-    font-size: 1.6rem; 
+    font-size: 1.6rem;
     line-height: 3rem;
-    padding: .5rem; 
+    padding: .5rem;
     display: block;
 }
 textarea {
@@ -145,7 +145,7 @@ aside {
    top: 0;
    left: 0;
    padding-top: 1.5rem;
-   text-shadow: 1px 1px 1px black;  
+   text-shadow: 1px 1px 1px black;
    width: 100%;
    height: 100%;
    transform: translateX(100%);
@@ -175,7 +175,7 @@ input[type=checkbox]:checked ~ aside {
 /* || Link styles */
 
 a {
-  color: #aaa;	
+  color: #aaa;
 }
 
 a:hover, a:focus {
@@ -200,7 +200,7 @@ a:hover, a:focus {
   aside {
    top: 0;
    left: 100%;
-   text-shadow: 1px 1px 1px black;  
+   text-shadow: 1px 1px 1px black;
    width: 480px;
    transform: translateX(0);
    border-left: 2px solid black;

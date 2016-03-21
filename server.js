@@ -121,7 +121,7 @@ var SampleApp = function() {
     /**
      *  Initialize the server (express) and create the routes and register
      *  the handlers.
-     */ 
+     */
     self.initializeServer = function() {
         self.createRoutes();
         self.app = express();
@@ -130,7 +130,7 @@ var SampleApp = function() {
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
         }
-        ['css', 'img', 'js', 'plugin', 'lib'].forEach(function (dir){
+        ['css', 'img', 'js', 'decoration', 'plugin', 'lib'].forEach(function (dir){
             self.app.use('/'+ dir, express.static(__dirname+'/public/'+dir));
         });
 
@@ -175,7 +175,7 @@ var SampleApp = function() {
                     res.json({'Error occured': resToken.statusCode});
                 }
             });
-            
+
         });
 
     };
@@ -215,4 +215,3 @@ var SampleApp = function() {
 var zapp = new SampleApp();
 zapp.initialize();
 zapp.start();
-
