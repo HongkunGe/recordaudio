@@ -1,191 +1,194 @@
-// fork getUserMedia for multiple browser versions, for those
-// that need prefixes
 
-navigator.getUserMedia = (navigator.getUserMedia ||
-                          navigator.webkitGetUserMedia ||
-                          navigator.mozGetUserMedia ||
-                          navigator.msGetUserMedia);
+(function($) {
+    // fork getUserMedia for multiple browser versions, for those
+    // that need prefixes
 
-// set up forked web audio context, for multiple browsers
-// window. is needed otherwise Safari explodes
+    navigator.getUserMedia = (navigator.getUserMedia ||
+                              navigator.webkitGetUserMedia ||
+                              navigator.mozGetUserMedia ||
+                              navigator.msGetUserMedia);
 
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-var source;
-var stream;
+    // set up forked web audio context, for multiple browsers
+    // window. is needed otherwise Safari explodes
 
-// grab the mute button to use below
+    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var source;
+    var stream;
 
-var mute = document.querySelector('.mute');
-var pause = document.querySelector('.pause');
-var infoPara = document.querySelector('#info');
+    // grab the mute button to use below
 
-var analyserStream = audioCtx.createAnalyser();
-analyserStream.minDecibels = -70;
-analyserStream.maxDecibels = -10;
-analyserStream.smoothingTimeConstant = 0.85;
+    var mute = document.querySelector('.mute');
+    var pause = document.querySelector('.pause');
+    var infoPara = document.querySelector('#info');
 
-var gainNode = audioCtx.createGain();
-var biquadFilter = audioCtx.createBiquadFilter();
+    var analyserStream = audioCtx.createAnalyser();
+    analyserStream.minDecibels = -70;
+    analyserStream.maxDecibels = -10;
+    analyserStream.smoothingTimeConstant = 0.85;
 
-var gainNodeStream = audioCtx.createGain();
-// set up canvas context for visualizer
+    var gainNode = audioCtx.createGain();
+    var biquadFilter = audioCtx.createBiquadFilter();
 
-var canvas2 = document.querySelector('.visualizer#v2');
-var intendedWidth = document.querySelector('.wrapper').clientWidth;
-var visualSelect = document.getElementById("visual");
-var drawVisualStream, drawVisualSource;
+    var gainNodeStream = audioCtx.createGain();
+    // set up canvas context for visualizer
 
-//=============Power=============
+    var canvas2 = document.querySelector('.visualizer#v2');
+    var intendedWidth = document.querySelector('.wrapper').clientWidth;
+    var visualSelect = document.getElementById("visual");
+    var drawVisualStream, drawVisualSource;
 
-var humanVoiceEnergy = 0;
-var totalEnergy = 0;
-var noiseLevel;
+    //=============Power=============
 
-// write to some file. 
-function collectSample(data){
-  document.getElementById("sampleDate").value += (data + '\n');
-  console.log(data);
-}
-//==========================
-var soundSource, concertHallBuffer;
+    var humanVoiceEnergy = 0;
+    var totalEnergy = 0;
+    var noiseLevel;
 
-//main block for doing the audio recording
+    // write to some file. 
+    var collectSample = function(data){
+      document.getElementById("sampleDate").value += (data + '\n');
+      console.log(data);
+    }
+    //==========================
+    var soundSource, concertHallBuffer;
 
-if (navigator.getUserMedia) {
-   console.log('getUserMedia supported.');
-   navigator.getUserMedia (
-      // constraints - only audio needed for this app
-      {
-         audio: true
-      },
+    //main block for doing the audio recording
 
-      // Success callback
-      function(stream) {
-         gainNodeStream.gain.value = 0;
-         source = audioCtx.createMediaStreamSource(stream);
-         source.connect(analyserStream);
-         analyserStream.connect(gainNodeStream);
-         gainNodeStream.connect(audioCtx.destination);
+    if (navigator.getUserMedia) {
+       console.log('getUserMedia supported.');
+       navigator.getUserMedia (
+          // constraints - only audio needed for this app
+          {
+             audio: true
+          },
 
-      	 visualizeStream(analyserStream, canvas2);
-      },
+          // Success callback
+          function(stream) {
+             gainNodeStream.gain.value = 0;
+             source = audioCtx.createMediaStreamSource(stream);
+             source.connect(analyserStream);
+             analyserStream.connect(gainNodeStream);
+             gainNodeStream.connect(audioCtx.destination);
 
-      // Error callback
-      function(err) {
-         console.log('The following gUM error occured: ' + err);
-      }
-   );
-} else {
-   console.log('getUserMedia not supported on your browser!');
-}
+          	 visualizeStream(analyserStream, canvas2);
+          },
 
-function visualizeStream(analyser, canvas) {
+          // Error callback
+          function(err) {
+             console.log('The following gUM error occured: ' + err);
+          }
+       );
+    } else {
+       console.log('getUserMedia not supported on your browser!');
+    }
 
-  var canvasCtx = canvas.getContext("2d");
-  canvas.setAttribute('width',intendedWidth);
-  
-  WIDTH = canvas.width;
-  HEIGHT = canvas.height;
+    var visualizeStream = function(analyser, canvas) {
 
-  var visualSetting = visualSelect.value;
-  console.log(visualSetting);
+      var canvasCtx = canvas.getContext("2d");
+      canvas.setAttribute('width',intendedWidth);
+      
+      WIDTH = canvas.width;
+      HEIGHT = canvas.height;
 
-    analyser.fftSize = 1024;
-    var bufferLength = analyser.frequencyBinCount;
-    console.log(bufferLength);
-    var dataArray = new Uint8Array(bufferLength);
+      var visualSetting = visualSelect.value;
+      console.log(visualSetting);
 
-    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        analyser.fftSize = 1024;
+        var bufferLength = analyser.frequencyBinCount;
+        console.log(bufferLength);
+        var dataArray = new Uint8Array(bufferLength);
 
-    // var show1 = Number.MIN_VALUE, show2 = Number.MAX_VALUE;
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
-    function draw() {
-      drawVisualStream = requestAnimationFrame(draw, canvas);
+        // var show1 = Number.MIN_VALUE, show2 = Number.MAX_VALUE;
 
-      analyser.getByteFrequencyData(dataArray);
+        function draw() {
+          drawVisualStream = requestAnimationFrame(draw, canvas);
 
-      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+          analyser.getByteFrequencyData(dataArray);
 
-      var barWidth = (WIDTH / bufferLength) * 3;
-      var barHeight, frequency;
-      var x = 0;
+          canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+          canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      humanVoiceEnergy = 0;
-      totalEnergy = 0;
+          var barWidth = (WIDTH / bufferLength) * 3;
+          var barHeight, frequency;
+          var x = 0;
 
-      for(var i = 0; i < bufferLength; i++) {
-        // show1 = Math.max(show1, dataArray[i]);
-        // show2 = Math.min(show2, dataArray[i]);
-        barHeight = dataArray[i];
+          humanVoiceEnergy = 0;
+          totalEnergy = 0;
 
-        frequency = i * audioCtx.sampleRate / analyser.fftSize;
-        var freqShow = parseInt(frequency);
-        if(freqShow % 50 == 0 || i == 2 || i == 7){
-          canvasCtx.fillText(freqShow, x, HEIGHT);
-        }
-        if(barHeight > 50){
-          if(freqShow >= 80 && freqShow <= 300){
-            humanVoiceEnergy += barHeight * barHeight;
+          for(var i = 0; i < bufferLength; i++) {
+            // show1 = Math.max(show1, dataArray[i]);
+            // show2 = Math.min(show2, dataArray[i]);
+            barHeight = dataArray[i];
+
+            frequency = i * audioCtx.sampleRate / analyser.fftSize;
+            var freqShow = parseInt(frequency);
+            if(freqShow % 50 == 0 || i == 2 || i == 7){
+              canvasCtx.fillText(freqShow, x, HEIGHT);
+            }
+            if(barHeight > 50){
+              if(freqShow >= 80 && freqShow <= 300){
+                humanVoiceEnergy += barHeight * barHeight;
+              }
+
+              totalEnergy += barHeight * barHeight;
+            }
+
+
+            canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+            canvasCtx.fillRect(x, HEIGHT - barHeight / 2 - 12, barWidth, barHeight / 2);
+            
+            x += barWidth + 1;
           }
 
-          totalEnergy += barHeight * barHeight;
-        }
+          if(totalEnergy > 20000 && drawVisualStream % 10 == 0){
+            collectSample(humanVoiceEnergy + ' ' + humanVoiceEnergy / totalEnergy);
+          }
+          
+          // console.log(show2 + ' ' + show1);
 
+        };
 
-        canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
-        canvasCtx.fillRect(x, HEIGHT - barHeight / 2 - 12, barWidth, barHeight / 2);
-        
-        x += barWidth + 1;
-      }
-
-      if(totalEnergy > 20000 && drawVisualStream % 10 == 0){
-        collectSample(humanVoiceEnergy + ' ' + humanVoiceEnergy / totalEnergy);
-      }
-      
-      // console.log(show2 + ' ' + show1);
+        draw();
 
     };
 
-    draw();
+    // event listeners to change visualize and voice settings
 
-}
+    visualSelect.onchange = function() {
+      window.cancelAnimationFrame(drawVisualStream);
+      pause.id = "";
+      visualizeStream(analyserStream, canvas2);
+      pause.innerHTML = "Pause";
+    };
 
-// event listeners to change visualize and voice settings
+    mute.onclick = voiceMute;
+    canvas2.onclick = pauseBtn;
+    pause.onclick = pauseBtn;
 
-visualSelect.onchange = function() {
-  window.cancelAnimationFrame(drawVisualStream);
-  pause.id = "";
-  visualizeStream(analyserStream, canvas2);
-  pause.innerHTML = "Pause";
-}
-
-mute.onclick = voiceMute;
-canvas2.onclick = pauseBtn;
-pause.onclick = pauseBtn;
-
-function pauseBtn(){
-  if(pause.id == ""){
-    pause.id = "paused"
-    window.cancelAnimationFrame(drawVisualStream);
-    pause.innerHTML = "Start";
-  } else {
-    pause.id = "";
-    visualizeStream(analyserStream, canvas2);
-    pause.innerHTML = "Pause";
-  }
-}
+    var pauseBtn = function(){
+      if(pause.id == ""){
+        pause.id = "paused"
+        window.cancelAnimationFrame(drawVisualStream);
+        pause.innerHTML = "Start";
+      } else {
+        pause.id = "";
+        visualizeStream(analyserStream, canvas2);
+        pause.innerHTML = "Pause";
+      }
+    };
 
 
-function voiceMute() {
-  if(mute.id == "") {
-    gainNode.gain.value = 0;
-    mute.id = "activated";
-    mute.innerHTML = "Unmute";
-  } else {
-    gainNode.gain.value = 1;
-    mute.id = "";    
-    mute.innerHTML = "Mute";
-  }
-}
+    var voiceMute = function() {
+      if(mute.id == "") {
+        gainNode.gain.value = 0;
+        mute.id = "activated";
+        mute.innerHTML = "Unmute";
+      } else {
+        gainNode.gain.value = 1;
+        mute.id = "";    
+        mute.innerHTML = "Mute";
+      }
+    };
 
+})(jQuery);
