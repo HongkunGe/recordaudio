@@ -29,37 +29,36 @@
 
     var gainNode = audioCtx.createGain();
     var biquadFilter = audioCtx.createBiquadFilter();
-
     var gainNodeStream = audioCtx.createGain();
-    // set up canvas context for visualizer
 
+    // set up canvas context for visualizer
     var canvas2 = document.querySelector('.visualizer#v2');
     var intendedWidth = document.querySelector('.wrapper').clientWidth;
     var visualSelect = document.getElementById("visual");
 
-    // fps is frames per second
+    // FPS is frames per second
     var isNoiseDetection = false;
     var drawVisualStream = 1;
-    var fps = 50;
-    var HUMAN_VOICE_RATIO_THRESHOLD = 0.2;
+    var FPS = 50;
+    var FFT_SIZE = 1024;
     var HUMAN_VOICE_THRESHOLD = 0;
-    var humanVoiceRatio = 0;
-    var humanVoiceEnergy = 0;
+    var SAMPLE_CNT = 15; // 3 Seconds, 5 samples per second.
+    var TOTAL_ENERGY_PER_FRAME = 0.0009;  // For each in sample(5 in total), Total energy interg rated over the whole spectrum.
+    var HUMAN_VOICE_RATIO_THRESHOLD = 0.2; // TOTAL_ENERGY_PER_FRAME * 0.2 == HUMAN_VOICE_ENERGY
 
     // queue to store the noise ratio
-    var SAMPLE_CNT = 25;
     var ratioQueue = [];
     ratioQueue.pop = ratioQueue.shift;
     var energyQueue = [];
     energyQueue.pop = energyQueue.shift;
 
+    var humanVoiceRatio = 0;
+    var humanVoiceEnergy = 0;
+
     var collectSample = function(data){
         document.getElementById("sampleDate").value += (data + '\n');
         console.log(data);
     }
-    //==========================
-    var soundSource, concertHallBuffer;
-
     //main block for doing the audio recording
 
     if (navigator.getUserMedia) {
@@ -101,7 +100,7 @@
         var visualSetting = visualSelect.value;
         console.log(visualSetting);
 
-        analyser.fftSize = 1024;
+        analyser.fftSize = FFT_SIZE;
         var bufferLength = analyser.frequencyBinCount;
         console.log(bufferLength);
         var dataArray = new Uint8Array(bufferLength);
@@ -136,27 +135,32 @@
                 x += barWidth + 1;
             }
 
-            // TODO: Add the feature of calculating the ratio of human voice.
             /* Every 10 frames we get samples from the frame.
-               since fps = 50, we sample 5 frames per second.
-
-               Solution 1: I will get the maximum of ratio average.
+               since FPS = 50, we sample 5 frames per second.
             */
             if(isNoiseDetection && drawVisualStream % 10 == 0){
-
-                var totalEnergy = calcEnergy(analyser, 1, audioCtx.sampleRate / 2);
-                var newHumanVoiceEnergy = calcEnergy(analyser, 80, 300);
+                var dataFloatArray = new Float32Array(analyser.frequencyBinCount);
+                analyser.getFloatFrequencyData(dataFloatArray);
+                var totalEnergy = calcEnergy(dataFloatArray, 1, audioCtx.sampleRate / 2);
+                var newHumanVoiceEnergy = calcEnergy(dataFloatArray, 80, 300);
                 var newRatio = 0;
 
-                if(totalEnergy > 0) {
+                if(totalEnergy >= TOTAL_ENERGY_PER_FRAME) {
                     newRatio = newHumanVoiceEnergy / totalEnergy;
+                    if(newRatio > 1){
+                        alert("Error: newRatio is LARGER than 1!");
+                    }
                 } else {
+                    /* If totalEnergy is lower than TOTAL_ENERGY_PER_FRAME, newRatio will be 0.
+                      This way we can ensure that totalEnergy is large enough and ratio is high enough.
+                    */
                     newRatio = 0;
-                    if(newHumanVoiceEnergy > 0){
-                        alert("Error: newHumanVoiceEnergy is not zero!");
+                    if(newHumanVoiceEnergy > TOTAL_ENERGY_PER_FRAME){
+                        alert("Error: newHumanVoiceEnergy is LARGER than totalEnergy!");
                     }
                 }
-
+                console.log("totalEnergy: " + totalEnergy.toString());
+                console.log("newHumanVoiceEnergy: " + newHumanVoiceEnergy.toString());
                 if(ratioQueue.length < SAMPLE_CNT) {
                     ratioQueue.push(newRatio);
                     energyQueue.push(newHumanVoiceEnergy);
@@ -169,10 +173,12 @@
                     energyQueue.pop();
                     energyQueue.push(newHumanVoiceEnergy);
                 }
+                // console.log("ratioQueue: " + ratioQueue.toString());
+                // console.log("energyQueue: " + energyQueue.toString());
             }
         };
 
-        setInterval(draw, 1000 / fps);
+        setInterval(draw, 1000 / FPS);
     };
 
     $("#noiseTestBtn").click(function(){
@@ -182,32 +188,45 @@
             isNoiseDetection = false;
             humanVoiceRatio = Math.max(humanVoiceRatio, average(ratioQueue));
             humanVoiceEnergy = Math.max(humanVoiceEnergy, average(energyQueue));
+
             if(humanVoiceRatio > HUMAN_VOICE_RATIO_THRESHOLD && humanVoiceEnergy > HUMAN_VOICE_THRESHOLD) {
                 $("#successInfo").html("<br>" + "Yeah! You have just passed the test! Now you can go to formal voice test.");
+                $('#noiseTestScrollBtn').css('display','inline-block');
             } else {
                 $("#successInfo").html("<br>" + "Oops! You may speak louder and make sure the environment is quiet.");
             }
+            // console.log("maxTotal: " + maxTotal + " minTotal: " + minTotal);
         } else {
             this.classList.add("testing");
             $(this).text("Testing...");
             isNoiseDetection = true;
             humanVoiceEnergy = 0;
             humanVoiceRatio = 0;
+
+            ratioQueue = [];
+            ratioQueue.pop = ratioQueue.shift;
+            energyQueue = [];
+            energyQueue.pop = energyQueue.shift;
         }
     });
 
-    // TODO: Given Float or Unit8 dataArray of frequency data, output the human voice energy.
+    // Given Float or Unit8 dataArray of frequency data, output the human voice energy.
     // ATTENTION: The unit of dataArray is dBFS.
-    var calcEnergy = function(analyser, lowerBound, upperBound) {
-        var dataFloatArray = new Float32Array(analyser.frequencyBinCount);
-        analyser.getFloatFrequencyData(dataFloatArray);
+    // var minTotal = 0, maxTotal = -150;
+    var calcEnergy = function(dataFloatArray, lowerBound, upperBound) {
         var energy = 0;
 
         for(var i = 0; i < dataFloatArray.length; i ++) {
-            var frequence = i * audioCtx.sampleRate / analyser.fftSize;
-            if(lowerBound <= frequence && frequence <= upperBound)
-            energy += Math.pow(10, dataFloatArray[i] / 10);
+            var frequence = i * audioCtx.sampleRate / FFT_SIZE;
+            if(lowerBound <= frequence && frequence <= upperBound) {
+                energy += Math.pow(10, dataFloatArray[i] / 10);
+            }
         }
+        // var maxArray = Math.max(...dataFloatArray);
+        // var minArray = Math.min(...dataFloatArray);
+        // maxTotal = Math.max(maxTotal, maxArray);
+        // minTotal = Math.min(minTotal, minArray);
+        // console.log("maxArray: " + maxArray + "minArray: " + minArray); // + "dataFloatArray: " + dataFloatArray.toString()
         return energy;
     };
 
