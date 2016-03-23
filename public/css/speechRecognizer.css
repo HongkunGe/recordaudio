@@ -5,6 +5,7 @@ body {
 }
 p{
    /*text-align: left;*/
+   margin: 5px;
 }
 /*#main{
     display: table;

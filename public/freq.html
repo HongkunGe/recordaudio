@@ -57,10 +57,10 @@
                         <a class="page-scroll" href="#VoiceTest">Voice Test</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#download">download</a>
+                        <a class="page-scroll" href="#upload">Upload</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#contact">Report</a>
+                        <a class="page-scroll" href="#contact">Contact</a>
                     </li>
                 </ul>
             </div>
@@ -98,8 +98,8 @@
                     <br>
                     <p class="intro-text">
                         Hey my friend, this is a pre-test, which ensures your environment is quiet and we can hear you clearly, before we navigate to formal voice test.
-                        <br> Read the sentence below and click the "Noise Test" Button.
-                        <br> The beauty of the view stunned the young boy.
+                        <br> Read the sentence below and click the "NOISE TEST" Button.
+                        <br> <span style = "font-size: 25px;">The beauty of the view stunned the young boy. </span>
                     </p>
 
                     <a id = "noiseTestBtn" class="btn btn-default btn-lg">Noise Test</a>
@@ -140,19 +140,18 @@
             <div class="col-lg-8 col-lg-offset-2">
                 <h2>Voice Test</h2>
                 <div>
-                    <p>Clich Button below to start the test.</p>
-                    <br/>
-                    <button id = "startTest" type="button" class="btn btn-default btn-lg" >Start Test</button>
-
+                    <p>Do you want to participate in the Intelligibility voice test?</p>
+                    <button id = "startTest" type="button" class="btn btn-default btn-lg" disabled>I am in!</button>
+                    <br>
                     <p>There will be 10 sentences in each test group. </p>
-                    <button id = "next" type="button" class="btn btn-default btn-lg" >Start</button>
-                    <button id = "play" type="button" class="btn btn-default btn-lg" >Play</button>
-                    <a id="save" href="#" class="btn btn-default btn-lg">save</a>
+                    <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Start</button>
+                    <button id = "play" type="button" class="btn btn-default btn-lg" disabled>Play</button>
+                    <a id="save" href="#" class="btn btn-link btn-lg" disabled>save</a>
 
                     <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
-                    <pre id = "reportShow" type="text" style = ""></pre>
+                    <pre id = "reportShow" type="text" style = "text-align:left"></pre>
                 </div>
-                <a href="#download" class="btn btn-circle page-scroll">
+                <a href="#upload" class="btn btn-circle page-scroll">
                     <i class="fa fa-angle-double-down animated"></i>
                 </a>
             </div>
@@ -160,13 +159,13 @@
     </section>
 
 
-    <!-- Download Section -->
-    <section id="download" class="content-section text-center">
+    <!-- upload Section -->
+    <section id="upload" class="content-section text-center">
         <div class="download-section">
             <div class="container">
                 <div class="col-lg-8 col-lg-offset-2">
-                    <h2>Download Grayscale</h2>
-                    <p>You can download Grayscale for free on the preview page at Start Bootstrap.</p>
+                    <h2>We need your help!</h2>
+                    <p>You can help us build a better world by giving us your audio and text.</p>
                     <a href="#contact" class="btn btn-circle page-scroll">
                         <i class="fa fa-angle-double-down animated"></i>
                     </a>
@@ -179,20 +178,20 @@
     <section id="contact" class="container content-section text-center">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2">
-                <h2>Contact Start Bootstrap</h2>
-                <p>Feel free to email us to provide some feedback on our templates, give us suggestions for new templates and themes, or to just say hello!</p>
-                <p><a href="mailto:feedback@startbootstrap.com">feedback@startbootstrap.com</a>
+                <h2>Contact Us</h2>
+                <p>Feel free to email us to provide some feedback, give us suggestions, or to just say hello!</p>
+                <p><a href="mailto:feedback@hongkun@cs.unc.com">hongkun@cs.unc.com</a>
                 </p>
                 <ul class="list-inline banner-social-buttons">
                     <li>
-                        <a href="https://twitter.com/SBootstrap" class="btn btn-default btn-lg"><i class="fa fa-twitter fa-fw"></i> <span class="network-name">Twitter</span></a>
+                        <a href="https://www.linkedin.com/in/hongkunge" class="btn btn-default btn-lg"><i class="fa fa-linkedin fa-fw"></i> <span class="network-name">LinkedIn</span></a>
                     </li>
                     <li>
-                        <a href="https://github.com/IronSummitMedia/startbootstrap" class="btn btn-default btn-lg"><i class="fa fa-github fa-fw"></i> <span class="network-name">Github</span></a>
+                        <a href="https://github.com/HongkunGe" class="btn btn-default btn-lg"><i class="fa fa-github fa-fw"></i> <span class="network-name">Github</span></a>
                     </li>
-                    <li>
+                    <!-- <li>
                         <a href="https://plus.google.com/+Startbootstrap/posts" class="btn btn-default btn-lg"><i class="fa fa-google-plus fa-fw"></i> <span class="network-name">Google+</span></a>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
         </div>
@@ -204,7 +203,7 @@
     <!-- Footer -->
     <footer>
         <div class="container text-center">
-            <p>Copyright &copy; Your Website 2014</p>
+            <p>Copyright &copy; Hongkun Ge and Gary Bishop 2016</p>
         </div>
     </footer>
 

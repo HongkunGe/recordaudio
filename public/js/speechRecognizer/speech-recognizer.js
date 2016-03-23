@@ -2,8 +2,8 @@
 
     $(document).ready(function() {
         navigator.getUserMedia = (navigator.getUserMedia ||
-                                  navigator.webkitGetUserMedia || 
-                                  navigator.mozGetUserMedia || 
+                                  navigator.webkitGetUserMedia ||
+                                  navigator.mozGetUserMedia ||
                                   navigator.msGetUserMedia);
 
         var audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -41,40 +41,40 @@
 
             source = audioContext.createMediaStreamSource(stream);
             source.connect(analyzer);
-            analyzer.connect(gainNode);            
+            analyzer.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
             audioRecorder = new Recorder(source);
         };
 
         var doneEncoding = function ( blob ) {
-                        
+
             console.log('Making request to Watson......');
 
             websocket.send(blob);
             setTimeout(function(){
                 websocket.send(JSON.stringify(stopSig));
-            }, 1500); 
+            }, 1500);
 
-            
-            
+
+
             Recorder.setupDownload( blob, "myRecording" + ((recIndex<10)?"0":"") + recIndex + ".wav" );
             recIndex++;
         };
 
         var gotBuffers = function ( buffers ) {
-            // the ONLY time gotBuffers is called is right after a new recording is completed - 
+            // the ONLY time gotBuffers is called is right after a new recording is completed -
             // so here's where we should set up the download.
             audioRecorder.exportWAV( doneEncoding );
         };
 
         var initialAudio = function() {
             if(navigator.getUserMedia) {
-                console.log('getUserMedia Supported!');
+                console.log('GetUserMedia Supported!');
                 navigator.getUserMedia(
                 {
                     audio: true
-                }, 
+                },
 
                 //Successful Callback
                 getStream,
@@ -112,7 +112,7 @@
             recognized = recognized.trim(" .");
 
             var original = stOriginal.toLowerCase();
-            // eliminate the first number char. 
+            // eliminate the first number char.
             original = $.trim(original).slice(startPos, original.length);
             original = original.trim(" ").replace(/\.$/, "");
 
@@ -136,14 +136,14 @@
                     }
                 }
             }
-            var scoreFinal = Math.floor((original.length - dp[original.length][recognized.length]) / original.length * 100); 
+            var scoreFinal = Math.floor((original.length - dp[original.length][recognized.length]) / original.length * 100);
             return scoreFinal;
         }
 
         var onMessage = function (evt) {
             console.log("onMessage: recognition result in json format: " + evt.data);
 
-            // 'Next ?/10' button should be disabled before the results messages are received. 
+            // 'Next ?/10' button should be disabled before the results messages are received.
             var evtData = $.parseJSON(evt.data);
             if('results' in evtData){
 
@@ -152,7 +152,7 @@
                     // Sometimes results is empty. Eliminate this one.
                     report['emptyResultsReturned'] ++;
                 } else {
-                    report['sentenceCount'] ++; 
+                    report['sentenceCount'] ++;
                     var stRecogized = evtData['results'][0]['alternatives'][0]['transcript'];
                     var stOriginal = selectedSentences[sentenceId - 1];
 
@@ -209,16 +209,16 @@
                 audioRecorder.stop();
                 console.log('Your voice has been recorded.');
                 this.classList.remove("recording");
-                
+
                 // disable 'Next' button until an message containing 'results' is received.
                 var showId = sentenceId + 1;
                 if(showId <= 10) {
                     $(this).text('Next ' + showId + '/10');
-                    $(this).prop('disabled', true);                    
+                    $(this).prop('disabled', true);
                 } else {
                     // showId is 11 now. all the tests have been finished. Last sending action will be finished.
                     $(this).text('Get Report!');
-                    $(this).prop('disabled', true); 
+                    $(this).prop('disabled', true);
                 }
 
                 audioRecorder.getBuffers( gotBuffers );
@@ -229,7 +229,7 @@
                     return;
                 console.log('Recording your voice......');
 
-                // Send start signal 
+                // Send start signal
                 websocket.send(JSON.stringify(startSig));
 
                 // start recording
@@ -249,10 +249,14 @@
         });
 
         $('#noiseDetection').click(function(){
-            
+
         });
-        
+
         $('#startTest').click(function(){
+            $("#next").prop('disabled', false);
+            $("#play").prop('disabled', false);
+            $("#save").prop('disabled', false);
+
             getToken();
             loadSentence();
         });

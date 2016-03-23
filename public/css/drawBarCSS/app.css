@@ -88,13 +88,16 @@ button, form a {
     text-align: center;
     color: white;
     border: none;
-    width: 90%;
+    width: 30%;
     margin: 1rem auto 0.5rem;
     max-width: 80%;
     font-size: 1.6rem;
     line-height: 3rem;
     padding: .5rem;
     display: block;
+}
+button#play {
+		width: 10%;
 }
 textarea {
   margin: 1rem auto 0.5rem;

@@ -55,14 +55,15 @@
     var humanVoiceRatio = 0;
     var humanVoiceEnergy = 0;
 
-    var collectSample = function(data){
-        document.getElementById("sampleDate").value += (data + '\n');
-        console.log(data);
-    }
+    // var collectSample = function(data){
+    //     document.getElementById("sampleDate").value += (data + '\n');
+    //     console.log(data);
+    // }
+
     //main block for doing the audio recording
 
     if (navigator.getUserMedia) {
-       console.log('getUserMedia supported.');
+       console.log('GetUserMedia Supported!');
        navigator.getUserMedia (
           // constraints - only audio needed for this app
           {
@@ -97,12 +98,8 @@
         WIDTH = canvas.width;
         HEIGHT = canvas.height;
 
-        var visualSetting = visualSelect.value;
-        console.log(visualSetting);
-
         analyser.fftSize = FFT_SIZE;
         var bufferLength = analyser.frequencyBinCount;
-        console.log(bufferLength);
         var dataArray = new Uint8Array(bufferLength);
 
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
@@ -159,8 +156,8 @@
                         alert("Error: newHumanVoiceEnergy is LARGER than totalEnergy!");
                     }
                 }
-                console.log("totalEnergy: " + totalEnergy.toString());
-                console.log("newHumanVoiceEnergy: " + newHumanVoiceEnergy.toString());
+                // console.log("totalEnergy: " + totalEnergy.toString());
+                // console.log("newHumanVoiceEnergy: " + newHumanVoiceEnergy.toString());
                 if(ratioQueue.length < SAMPLE_CNT) {
                     ratioQueue.push(newRatio);
                     energyQueue.push(newHumanVoiceEnergy);
@@ -192,6 +189,7 @@
             if(humanVoiceRatio > HUMAN_VOICE_RATIO_THRESHOLD && humanVoiceEnergy > HUMAN_VOICE_THRESHOLD) {
                 $("#successInfo").html("<br>" + "Yeah! You have just passed the test! Now you can go to formal voice test.");
                 $('#noiseTestScrollBtn').css('display','inline-block');
+                $("#startTest").prop('disabled', false);
             } else {
                 $("#successInfo").html("<br>" + "Oops! You may speak louder and make sure the environment is quiet.");
             }
