@@ -1,56 +1,230 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="992 Project">
-    <meta name="author" content="Hongkun Ge">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-    <title>Speech Recognition</title>
+    <title>Intelligibility</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="decoration/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="css/clean-blog.min.css" rel="stylesheet">
+    <link href="css/drawBarCSS/normalize.css" rel="stylesheet" type="text/css">
+    <link href="css/drawBarCSS/app.css" rel="stylesheet" type="text/css">
+    <link href="decoration/css/grayscale.css" rel="stylesheet">
 
     <!-- Custom Fonts -->
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
-
-      <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <!-- jQuery library -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <!-- Latest compiled JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link href="decoration/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
 
     <link rel="stylesheet" type="text/css" href="css/speechRecognizer.css">
-    <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
-    <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script>
-    <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
+
+
 </head>
-<body>
 
-    <div>
-        <p>Clich Button below for noise detection.</p>
-        <br/>
-        <button id = "noiseDetection" type="button" class="btn btn-primary" >Noise Detection</button>
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
 
-        <p>Clich Button below to start the test.</p>
-        <br/>
-        <button id = "startTest" type="button" class="btn btn-primary" >Start Test</button>
+    <!-- Navigation -->
+    <nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand page-scroll" href="#page-top">
+                    <i class="fa fa-play-circle"></i>  <span class="light">Intelligibility</span>
+                </a>
+            </div>
 
-        <p>There will be 10 sentences in each test group. </p>
-        <button id = "next" type="button" class="btn btn-warning" >Start</button>
-        <button id = "play" type="button" class="btn btn-primary" >Play</button> 
-        <a id="save" href="#" class="btn btn-link">save</a>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-right navbar-main-collapse">
+                <ul class="nav navbar-nav">
+                    <!-- Hidden li included to remove active class from about link when scrolled up past NoiseTest section -->
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#NoiseTest">Noise Test</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#VoiceTest">Voice Test</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#upload">Upload</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
 
-        <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
-        <pre id = "reportShow" type="text" style = ""></pre>
-    </div>
+    <!-- Intro Header -->
+    <header class="intro">
+        <div class="intro-body">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2">
+                        <h1 class="brand-heading">Intelligibility</h1>
+                        <p class="intro-text">You Talk We Hear.<br>Support our work for healthy future of all the people.<br>Created by Hongkun Ge.</p>
+                        <a href="#NoiseTest" class="btn btn-circle page-scroll">
+                            <i class="fa fa-angle-double-down animated"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<!--     <div class = 'speech-mic'></div> -->
+    <!-- NoiseTest Section -->
+    <section id="NoiseTest" class="container content-section text-center">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <div class="wrapper">
+                    <h2>Noise Test</h2>
 
+                    <canvas id = "v2" class="visualizer" width="100%" height="200"></canvas>
+                    <br>
+                    <br>
+                    <p class="intro-text">
+                        Hey my friend, this is a pre-test, which ensures your environment is quiet and we can hear you clearly, before we navigate to formal voice test.
+                        <br> Read the sentence below and click the "NOISE TEST" Button.
+                        <br> <span style = "font-size: 25px;">The beauty of the view stunned the young boy. </span>
+                    </p>
+
+                    <a id = "noiseTestBtn" class="btn btn-default btn-lg">Noise Test</a>
+                    <p id = "successInfo"></p>
+                    <form class="controls" style="display: none;">
+                        <div>
+                            <label for="visual">Visualizer setting</label>
+                            <select id="visual" name="visual">
+                                <option value="sinewave">Sinewave</option>
+                                <option value="frequencybars" selected>Frequency bars</option>
+                                <option value="off">Off</option>
+                            </select>
+                        </div>
+                        <div>
+                            <a class="mute">Mute</a>
+                        </div>
+                        <div>
+                            <a class="pause">Pause</a>
+                        </div>
+                        <div>
+                            <textarea id="sampleDate"></textarea>
+                        </div>
+                    </form>
+
+                    <br>
+                    <br>
+                    <a id = "noiseTestScrollBtn" href="#VoiceTest" class="btn btn-circle page-scroll" style="display: none;">
+                        <i class="fa fa-angle-double-down animated"></i>
+                    </a>
+              </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="VoiceTest" class="container content-section text-center" >
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <h2>Voice Test</h2>
+                <div>
+                    <p>Do you want to participate in the Intelligibility voice test?</p>
+                    <button id = "startTest" type="button" class="btn btn-default btn-lg" disabled>I am in!</button>
+                    <br>
+                    <p>There will be 10 sentences in each test group. </p>
+                    <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Start</button>
+                    <button id = "play" type="button" class="btn btn-default btn-lg" disabled>Play</button>
+                    <a id="save" href="#" class="btn btn-link btn-lg" disabled>save</a>
+
+                    <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
+                    <pre id = "reportShow" type="text" style = "text-align:left"></pre>
+                </div>
+                <a href="#upload" class="btn btn-circle page-scroll">
+                    <i class="fa fa-angle-double-down animated"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- upload Section -->
+    <section id="upload" class="content-section text-center">
+        <div class="download-section">
+            <div class="container">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <h2>We need your help!</h2>
+                    <p>You can help us build a better world by giving us your audio and text.</p>
+                    <a href="#contact" class="btn btn-circle page-scroll">
+                        <i class="fa fa-angle-double-down animated"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="container content-section text-center">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <h2>Contact Us</h2>
+                <p>Feel free to email us to provide some feedback, give us suggestions, or to just say hello!</p>
+                <p><a href="mailto:feedback@hongkun@cs.unc.com">hongkun@cs.unc.com</a>
+                </p>
+                <ul class="list-inline banner-social-buttons">
+                    <li>
+                        <a href="https://www.linkedin.com/in/hongkunge" class="btn btn-default btn-lg"><i class="fa fa-linkedin fa-fw"></i> <span class="network-name">LinkedIn</span></a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/HongkunGe" class="btn btn-default btn-lg"><i class="fa fa-github fa-fw"></i> <span class="network-name">Github</span></a>
+                    </li>
+                    <!-- <li>
+                        <a href="https://plus.google.com/+Startbootstrap/posts" class="btn btn-default btn-lg"><i class="fa fa-google-plus fa-fw"></i> <span class="network-name">Google+</span></a>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <!-- <div id="map"></div> -->
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <p>Copyright &copy; Hongkun Ge and Gary Bishop 2016</p>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="decoration/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="decoration/js/bootstrap.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="decoration/js/jquery.easing.min.js"></script>
+
+    <script src="js/drawBar/drawBar.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="decoration/js/grayscale.js"></script>
+
+    <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
+    <!-- <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script> -->
+    <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
 
 </body>
+
 </html>
