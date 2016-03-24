@@ -19,7 +19,7 @@
         var wsURI = "wss://stream.watsonplatform.net/speech-to-text/api/v1/recognize?watson-token=";
         var webSocket = null;
 
-        var startSig = {"action": "start", "content-type": "audio/wav;rate=22050"};
+        var startSig = {"action": "start", "content-type": "audio/wav;rate=22050", "inactivity_timeout": 100};
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
@@ -176,6 +176,7 @@
 
         var onClose = function(evt) {
             console.log("Connection is Closed!");
+            alert("Sorry, session timed out due to inactivity. Please refresh the browser and restart again.");
         };
 
         var onOpen = function(evt) {
