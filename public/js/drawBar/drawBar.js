@@ -22,6 +22,8 @@
     var infoPara = document.querySelector('#info');
     var noiseTest = document.querySelector('#noiseTestBtn');
 
+    var noiseTestSection = document.querySelector('#NoiseTest');
+
     var analyserStream = audioCtx.createAnalyser();
     analyserStream.minDecibels = -70;
     analyserStream.maxDecibels = -10;
@@ -55,6 +57,7 @@
     var humanVoiceRatio = 0;
     var humanVoiceEnergy = 0;
 
+    var shouldHandleKeyDown = true;
     // var collectSample = function(data){
     //     document.getElementById("sampleDate").value += (data + '\n');
     //     console.log(data);
@@ -179,9 +182,36 @@
     };
 
     $("#noiseTestBtn").click(function(){
-        if (this.classList.contains("testing")) {
-            this.classList.remove("testing");
-            $(this).text("Noise Test");
+        noiseTestFunc(this);
+    });
+
+    // noiseTestSection.onkeydown = function(event) {
+    //
+    //     // Avoid repetitive events on a key being pressed
+    //     if(!shouldHandleKeyDown)
+    //         return;
+    //     shouldHandleKeyDown = false;
+    //
+    //     // Key down event.
+    //     console.log(event.keyCode);
+    //     if(event.keyCode == "65") {
+    //         $("#noiseTestBtn").click();
+    //     }
+    // };
+    // noiseTestSection.onkeyup = function(event) {
+    // 
+    //     shouldHandleKeyDown = true;
+    //     // Key up event.
+    //     console.log(event.keyCode);
+    //     if(event.keyCode == "65") {
+    //         $("#noiseTestBtn").click();
+    //     }
+    // };
+
+    var noiseTestFunc = function(elem){
+        if (elem.classList.contains("testing")) {
+            elem.classList.remove("testing");
+            $(elem).text("Noise Test");
             isNoiseDetection = false;
             humanVoiceRatio = Math.max(humanVoiceRatio, average(ratioQueue));
             humanVoiceEnergy = Math.max(humanVoiceEnergy, average(energyQueue));
@@ -195,8 +225,8 @@
             }
             // console.log("maxTotal: " + maxTotal + " minTotal: " + minTotal);
         } else {
-            this.classList.add("testing");
-            $(this).text("Testing...");
+            elem.classList.add("testing");
+            $(elem).text("Testing...");
             isNoiseDetection = true;
             humanVoiceEnergy = 0;
             humanVoiceRatio = 0;
@@ -206,8 +236,7 @@
             energyQueue = [];
             energyQueue.pop = energyQueue.shift;
         }
-    });
-
+    };
     // Given Float or Unit8 dataArray of frequency data, output the human voice energy.
     // ATTENTION: The unit of dataArray is dBFS.
     // var minTotal = 0, maxTotal = -150;
@@ -232,4 +261,6 @@
         var sum = array.reduce(function(a, b) {return a + b;});
         return sum / array.length;
     };
+
+    return noiseTestFunc;
 })(jQuery);

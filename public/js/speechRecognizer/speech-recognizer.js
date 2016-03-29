@@ -1,12 +1,12 @@
 (function($) {
-
-    $(document).ready(function() {
         navigator.getUserMedia = (navigator.getUserMedia ||
                                   navigator.webkitGetUserMedia ||
                                   navigator.mozGetUserMedia ||
                                   navigator.msGetUserMedia);
 
         var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        var voiceTestSection = document.querySelector('#VoiceTest');
 
         var source;
         var stream;
@@ -204,27 +204,27 @@
             });
         };
 
-        $('#next').click(function(){
-            if (this.classList.contains("recording") && sentenceId <= 10) {
+        var nextSwithFunc = function(elem){
+            if (elem.classList.contains("recording") && sentenceId <= 10) {
                 // stop recording
                 audioRecorder.stop();
                 console.log('Your voice has been recorded.');
-                this.classList.remove("recording");
+                elem.classList.remove("recording");
 
                 // disable 'Next' button until an message containing 'results' is received.
                 var showId = sentenceId + 1;
                 if(showId <= 10) {
-                    $(this).text('Next ' + showId + '/10');
-                    $(this).prop('disabled', true);
+                    $(elem).text('Next ' + showId + '/10');
+                    $(elem).prop('disabled', true);
                 } else {
                     // showId is 11 now. all the tests have been finished. Last sending action will be finished.
-                    $(this).text('Get Report!');
-                    $(this).prop('disabled', true);
+                    $(elem).text('Get Report!');
+                    $(elem).prop('disabled', true);
                 }
 
                 audioRecorder.getBuffers( gotBuffers );
 
-            } else if( !(this.classList.contains("recording")) && sentenceId <= 10){
+            } else if( !(elem.classList.contains("recording")) && sentenceId <= 10){
                 // start recording
                 if (!audioRecorder)
                     return;
@@ -234,19 +234,23 @@
                 websocket.send(JSON.stringify(startSig));
 
                 // start recording
-                this.classList.add("recording");
+                elem.classList.add("recording");
                 audioRecorder.clear();
                 audioRecorder.record();
 
                 // Show the sentence that the user should be reading now.
                 showSentence(sentenceId - 1);
-                $(this).text('Submit!');
+                $(elem).text('Submit!');
 
             } else {
                 // This block happens when sentenceId == 11. We will show the report and finally we will disable it.
-                $(this).prop('disabled', true);
+                $(elem).prop('disabled', true);
                 $('#reportShow').text(JSON.stringify(report, null, 4));
             }
+        };
+
+        $('#next').click(function(){
+            nextSwithFunc(this);
         });
 
         $('#noiseDetection').click(function(){
@@ -263,5 +267,6 @@
         });
 
         initialAudio();
-    });
+
+        return nextSwithFunc;
 })(jQuery);
