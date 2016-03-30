@@ -1,9 +1,13 @@
 (function($) {
     var shouldHandleKeyDown = true;
 
-    document.onkeypress = function(event) {
-
-    };
+    // document.onkeypress = function(event) {
+    //   var charCode = (event.which) ? event.which : event.keyCode;
+    //   var keyInput = String.fromCharCode(charCode);
+    //   // Key press event.
+    //   console.log("key press " + keyInput);
+    //
+    // };
 
     document.onkeydown = function(event) {
 
@@ -12,27 +16,43 @@
             return;
         shouldHandleKeyDown = false;
 
+        var charCode = (event.which) ? event.which : event.keyCode;
+        var keyInput = String.fromCharCode(charCode);
         // Key down event.
-        console.log("key down " + event.keyCode);
-        if(event.keyCode == "65") {
+        console.log("key down " + keyInput);
+
+        // t for Test Noise button
+        if((keyInput == 'T' || keyInput == 't') && !($("#noiseTestBtn").is(":disabled"))) {
             $("#noiseTestBtn").click();
         }
 
-        if(event.keyCode == "78") {
+        // n for Next button click
+        if((keyInput == 'N' || keyInput == 'n')   && !($("#next").is(":disabled"))) {
             $("#next").click();
+        }
+
+        // b for Back button click
+        if((keyInput == 'B' || keyInput == 'b') && !($("#back").is(":disabled"))) {
+            $("#back").click();
         }
     };
 
     document.onkeyup = function(event) {
 
         shouldHandleKeyDown = true;
+
+        var charCode = (event.which) ? event.which : event.keyCode;
+        var keyInput = String.fromCharCode(charCode);
         // Key up event.
         console.log("key up " + event.keyCode);
-        if(event.keyCode == "65") {
+
+        // t for Test Noise button
+        if((keyInput == 'T' || keyInput == 't') && !($("#noiseTestBtn").is(":disabled"))) {
             $("#noiseTestBtn").click();
         }
 
-        if(event.keyCode == "78") {
+        // n for Next button click
+        if((keyInput == 'N' || keyInput == 'n')   && !($("#next").is(":disabled"))) {
             $("#next").click();
         }
     };

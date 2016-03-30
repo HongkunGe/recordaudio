@@ -185,29 +185,6 @@
         noiseTestFunc(this);
     });
 
-    // noiseTestSection.onkeydown = function(event) {
-    //
-    //     // Avoid repetitive events on a key being pressed
-    //     if(!shouldHandleKeyDown)
-    //         return;
-    //     shouldHandleKeyDown = false;
-    //
-    //     // Key down event.
-    //     console.log(event.keyCode);
-    //     if(event.keyCode == "65") {
-    //         $("#noiseTestBtn").click();
-    //     }
-    // };
-    // noiseTestSection.onkeyup = function(event) {
-    // 
-    //     shouldHandleKeyDown = true;
-    //     // Key up event.
-    //     console.log(event.keyCode);
-    //     if(event.keyCode == "65") {
-    //         $("#noiseTestBtn").click();
-    //     }
-    // };
-
     var noiseTestFunc = function(elem){
         if (elem.classList.contains("testing")) {
             elem.classList.remove("testing");

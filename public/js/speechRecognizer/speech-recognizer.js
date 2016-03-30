@@ -23,18 +23,23 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 10;
+        var sentenceNumInGroup = 3;
         var sentenceGroupId = 1;
         var sentenceId = 1;
         var startPos = 3;
 
+        var testIsFinished = false;
+        var haveTried = 1;
         var totalScore = 0;
         var report = {
             'emptyResultsReturned': 0,
             'sentenceCount': 0,
             'average': 0,
-            'results':[]
+            'results':[],
+            'deleted':[]
         };
+        var operations = [];
+        var logs = [];
 
         var getStream = function(stream){
             gainNode.gain.value = 0;
@@ -55,8 +60,6 @@
             setTimeout(function(){
                 websocket.send(JSON.stringify(stopSig));
             }, 1500);
-
-
 
             Recorder.setupDownload( blob, "myRecording" + ((recIndex<10)?"0":"") + recIndex + ".wav" );
             recIndex++;
@@ -102,7 +105,8 @@
         };
 
         var showSentence = function( id ) {
-            $('#sentenceShow').html(selectedSentences[id]);
+            $("#sentenceShow").css('display','inline-block');
+            $('#sentenceShow').html(selectedSentences[id - 1]);
         };
 
         // Use edit distance between the two sentences to calculate the similarity value.
@@ -140,43 +144,97 @@
             return scoreFinal;
         }
 
+        var addItemToReport = function(evtResult) {
+            // All all the details to the report.
+            if(evtResult.length == 0) {
+
+                // Push 0 to operations: We got an empty result from IBM Watson.
+                operations.push(0);
+                // Sometimes results is empty. Eliminate this one.
+                report['emptyResultsReturned'] ++;
+            } else {
+                // // Push 0 to operations: We got a normal result from IBM Watson.
+                operations.push(1);
+                report['sentenceCount'] ++;
+                var stRecogized = evtResult[0]['alternatives'][0]['transcript'];
+                var stOriginal = selectedSentences[sentenceId - 1];
+
+                var item = {
+                    'originalSentence': stOriginal,
+                    'recogizedSentence': stRecogized,
+                    'score': sentenceScore(stRecogized, stOriginal)
+                };
+                report['results'].push(item);
+                totalScore += item['score'];
+            }
+
+            // When sentenceId == sentenceNumInGroup 10 as default, we won't enable 'Next' Button, but switch to ''GetReport' button and enable it.
+            // sentenceId should be 11, when calculating the score.
+            sentenceId++;
+            if(sentenceId == sentenceNumInGroup + 1) {
+                report['average'] = Math.round(totalScore / report['sentenceCount']);
+            }
+        };
+
+        var deleteLastItemFromReport = function() {
+            // TODO: deleteLastItemFromReport or eliminate a 0. TEST
+
+            if(operations.length != 0) {
+                var lastOperation = operations.pop();
+                if(lastOperation == 1) {
+                    report['sentenceCount'] --;
+                    var lastItem = report['results'].pop();
+                    totalScore -= lastItem['score'];
+                    report['deleted'].push(lastItem);
+                } else {
+                    // Last Operation only give us an empty result, do nothing but below.
+                    report['emptyResultsReturned'] --;
+                    if(report['emptyResultsReturned'] < 0) {
+                        alert("Operations: emptyResultsReturned is less than 0!");
+                    }
+                }
+
+            } else {
+                alert("Operations: We have deleted all sentences!");
+            }
+        };
+
         var onMessage = function (evt) {
             console.log("onMessage: recognition result in json format: " + evt.data);
 
+            $("#layer2").css('display','none');
             // 'Next ?/10' button should be disabled before the results messages are received.
             var evtData = $.parseJSON(evt.data);
             if('results' in evtData){
+                addItemToReport(evtData['results']);
 
-                // All all the details to the report.
-                if(evtData['results'].length == 0) {
-                    // Sometimes results is empty. Eliminate this one.
-                    report['emptyResultsReturned'] ++;
+                if(sentenceId == sentenceNumInGroup + 1) {
+                    $("#sentenceShow").css('display','none');
                 } else {
-                    report['sentenceCount'] ++;
-                    var stRecogized = evtData['results'][0]['alternatives'][0]['transcript'];
-                    var stOriginal = selectedSentences[sentenceId - 1];
-
-                    var item = {
-                        'originalSentence': stOriginal,
-                        'recogizedSentence': stRecogized,
-                        'score': sentenceScore(stRecogized, stOriginal)
-                    };
-                    report['results'].push(item);
-                    totalScore += item['score'];
-                }
-
-                // When sentenceId == 10, we won't enable 'Next' Button, but switch to ''GetReport' button and enable it.
-                sentenceId++;
-                if(sentenceId == 10) {
-                    report['average'] = Math.round(totalScore / report['sentenceCount']);
+                    showSentence(sentenceId);
                 }
                 $('#next').prop('disabled', false);
+                $("#back").prop('disabled', false);
             }
+
+            //TODO: if('error' in evtData)
         };
 
         var onClose = function(evt) {
             console.log("Connection is Closed!");
-            alert("Sorry, session timed out due to inactivity. Please refresh the browser and restart again.");
+            if(!testIsFinished && haveTried < 6) {
+                console.log("Reconnecting " + haveTried);
+                haveTried ++;
+                webSocketConnect();
+
+                // re-enable the next and back buttons.
+                $('#next').prop('disabled', false);
+                $("#back").prop('disabled', false);
+            } else if(testIsFinished){
+                console.log("Test is finished");
+            } else {
+                console.log("Something bad happens, since I have tried" + 6 + "times but all failed.");
+            }
         };
 
         var onOpen = function(evt) {
@@ -191,43 +249,52 @@
                     console.log(data);
                     token = data['token'];
                     wsURI = wsURI + token;
-                    websocket = new WebSocket(wsURI);
-
-                    websocket.onmessage = function(evt) { onMessage(evt); };
-                    websocket.onopen = function(evt) { onOpen(evt); };
-                    websocket.onclose = function(evt) { onClose(evt); };
+                    webSocketConnect();
                 },
                 error: function (request, status, error) {
+                    console.log('Get Token from IBM Watson failed. Please refresh the browser.')
                     console.log('Error occured: ' + error);
                 }
 
             });
         };
 
+        var webSocketConnect = function() {
+            websocket = new WebSocket(wsURI);
+
+            websocket.onmessage = function(evt) { onMessage(evt); };
+            websocket.onopen = function(evt) { onOpen(evt); };
+            websocket.onclose = function(evt) { onClose(evt); };
+        };
+
         var nextSwithFunc = function(elem){
-            if (elem.classList.contains("recording") && sentenceId <= 10) {
+            if (elem.classList.contains("recording") && sentenceId <= sentenceNumInGroup) {
                 // stop recording
                 audioRecorder.stop();
                 console.log('Your voice has been recorded.');
                 elem.classList.remove("recording");
 
-                // disable 'Next' button until an message containing 'results' is received.
+                /* Disable 'Next' &'Back' button until an message containing 'results' is received.
+                   Show the Spinner
+                */
                 var showId = sentenceId + 1;
-                if(showId <= 10) {
-                    $(elem).text('Next ' + showId + '/10');
-                    $(elem).prop('disabled', true);
+                if(showId <= sentenceNumInGroup) {
+                    $(elem).text('Next '); // + showId + '/' + sentenceNumInGroup
                 } else {
                     // showId is 11 now. all the tests have been finished. Last sending action will be finished.
                     $(elem).text('Get Report!');
-                    $(elem).prop('disabled', true);
                 }
+                $("#back").prop('disabled', true);
+                $(elem).prop('disabled', true);
+                $("#layer2").css('display','block');
 
                 audioRecorder.getBuffers( gotBuffers );
 
-            } else if( !(elem.classList.contains("recording")) && sentenceId <= 10){
+            } else if( !(elem.classList.contains("recording")) && sentenceId <= sentenceNumInGroup){
                 // start recording
                 if (!audioRecorder)
                     return;
+                console.log("SentenceID: " + sentenceId);
                 console.log('Recording your voice......');
 
                 // Send start signal
@@ -239,28 +306,53 @@
                 audioRecorder.record();
 
                 // Show the sentence that the user should be reading now.
-                showSentence(sentenceId - 1);
-                $(elem).text('Submit!');
+                showSentence(sentenceId);
+                $(elem).text('Recording...');
 
             } else {
-                // This block happens when sentenceId == 11. We will show the report and finally we will disable it.
+                // This block happens when sentenceId == 11. We will show the report and finally we will disable all buttons.
+                testIsFinished = true;
                 $(elem).prop('disabled', true);
+                $("#back").prop('disabled', true);
+
+                // Show the report
+                $("#reportShow").css('display','inline-block');
                 $('#reportShow').text(JSON.stringify(report, null, 4));
+                console.log(logs);
+            }
+        };
+
+        var backSwithFunc = function() {
+            // back to last sentence
+            if(sentenceId - 1 > 0){
+                sentenceId = sentenceId - 1;
+                // var showId = sentenceId + 1;
+                $('#next').text('Next '); // + showId + '/' + sentenceNumInGroup
+                showSentence(sentenceId);
+
+                console.log("Back to last Sentence " + sentenceId);
+                deleteLastItemFromReport();
+            } else {
+                $("#back").prop('disabled', true);
             }
         };
 
         $('#next').click(function(){
+            logs.push('addNewItem');
             nextSwithFunc(this);
         });
 
-        $('#noiseDetection').click(function(){
-
+        $('#back').click(function(){
+            logs.push('deleteAnItem');
+            backSwithFunc(this);
         });
 
         $('#startTest').click(function(){
+            $("#voiceTestSection").css('display','inline-block');
             $("#next").prop('disabled', false);
             $("#play").prop('disabled', false);
             $("#save").prop('disabled', false);
+            $('#startTest').prop('disabled', true);
 
             getToken();
             loadSentence();
