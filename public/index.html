@@ -51,7 +51,7 @@
                         <a href="#page-top"></a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#NoiseTest">Noise Test</a>
+                        <a class="page-scroll" href="#NoiseTest" style="display: none;">Noise Test</a>
                     </li>
                     <li>
                         <a class="page-scroll" href="#VoiceTest">Voice Test</a>
@@ -77,7 +77,7 @@
                     <div class="col-md-8 col-md-offset-2">
                         <h1 class="brand-heading">Intelligibility</h1>
                         <p class="intro-text">You Talk We Hear.<br>Support our work for healthy future of all the people.<br>Created by Hongkun Ge.</p>
-                        <a href="#NoiseTest" class="btn btn-circle page-scroll">
+                        <a href="#VoiceTest" class="btn btn-circle page-scroll">
                             <i class="fa fa-angle-double-down animated"></i>
                         </a>
                     </div>
@@ -87,7 +87,7 @@
     </header>
 
     <!-- NoiseTest Section -->
-    <section id="NoiseTest" class="container content-section text-center">
+    <section id="NoiseTest" class="container content-section text-center" style="display: none;">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2">
                 <div class="wrapper">
@@ -140,13 +140,12 @@
             <div class="col-lg-8 col-lg-offset-2">
                 <h2>Voice Test</h2>
                 <div>
-                    <p>Do you want to participate in the Intelligibility voice test?</p>
+                    <p>Do you want to participate in the Intelligibility voice test? (Press "Y" key for "YES" or click the button below.)</p>
                     <button id = "startTest" type="button" class="btn btn-default btn-lg" >I am in!</button>
                     <br>
                         <div id = "voiceTestSection" style="display: none;">
-                            <p>There are 10 sentences in each test group. Please click the "START" Button below to start
-                                reading the sentence shown and then Submit it for evaluation. After you finish all 10 sentences,
-                                we will give you a detailed report.
+                            <p>There are 10 sentences in the test group. Please hold "SHIFT" key to record your voice and release it to submit the audio. You can press "B" key for returning back to redo the tasks. After you finish all 10 sentences,
+                                we will give you a detailed report. Click button below or press "SHIFT" key to get the report.
                             </p>
                             <button id = "back" type="button" class="btn btn-default btn-lg" disabled>Back</button>
                             <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Start</button>
@@ -154,7 +153,9 @@
                             <a id="save" href="#" class="btn btn-link btn-lg">save</a>
 
                             <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
-                            <br>
+                            <p id = "noiseAttention" type = "text" style="display: none;">
+                                Oops! It seems that I cannot hear you clearly. Please CLICK the "BACK" Button and redo this one. Please speak louder and make sure the environment is quiet.
+                            </p>
                             <pre id = "reportShow" type="text" style = "text-align:left; display:none;"></pre>
                       </div>
                 </div>
@@ -227,7 +228,7 @@
     <script src="decoration/js/jquery.easing.min.js"></script>
 
     <script src="js/drawBar/drawBar.js"></script>
-    <script src="js/debug.js"></script>
+    <!-- <script src="js/debug.js"></script> -->
     <script src="js/keyManager.js"></script>
     <!-- Custom Theme JavaScript -->
     <script src="decoration/js/grayscale.js"></script>

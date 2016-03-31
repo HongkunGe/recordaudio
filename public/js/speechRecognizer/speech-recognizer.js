@@ -23,7 +23,7 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 3;
+        var sentenceNumInGroup = 10;
         var sentenceGroupId = 1;
         var sentenceId = 1;
         var startPos = 3;
@@ -152,6 +152,7 @@
                 operations.push(0);
                 // Sometimes results is empty. Eliminate this one.
                 report['emptyResultsReturned'] ++;
+                $("#noiseAttention").css('display','block');
             } else {
                 // // Push 0 to operations: We got a normal result from IBM Watson.
                 operations.push(1);
@@ -338,11 +339,13 @@
         };
 
         $('#next').click(function(){
+            $("#noiseAttention").css('display','none');
             logs.push('addNewItem');
             nextSwithFunc(this);
         });
 
         $('#back').click(function(){
+            $("#noiseAttention").css('display','none');
             logs.push('deleteAnItem');
             backSwithFunc(this);
         });
@@ -360,5 +363,4 @@
 
         initialAudio();
 
-        return nextSwithFunc;
 })(jQuery);
