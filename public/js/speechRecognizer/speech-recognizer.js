@@ -23,9 +23,13 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 10;
+        var sentenceNumInGroup = 3;
         var sentenceGroupId = 1;
         var sentenceId = 1;
+        var recordingSentenceId = 1;
+        var blobQueue = [];
+        blobQueue.pop = blobQueue.shift;
+        var isProcessing = false;
         var startPos = 3;
 
         var testIsFinished = false;
@@ -54,15 +58,35 @@
 
         var doneEncoding = function ( blob ) {
 
-            console.log('Making request to Watson......');
+            blobQueue.push(blob);
 
-            websocket.send(blob);
-            setTimeout(function(){
-                websocket.send(JSON.stringify(stopSig));
-            }, 1500);
-
+            console.log("isProcessing: " + isProcessing);
+            if(blobQueue.length == 1 && !isProcessing) {
+                processBlobQueue();
+            }
             Recorder.setupDownload( blob, "myRecording" + ((recIndex<10)?"0":"") + recIndex + ".wav" );
             recIndex++;
+        };
+
+        var processBlobQueue = function() {
+            if(blobQueue.length > 0) {
+                console.log('Making request to Watson...... sentenceId: ' + sentenceId);
+
+                isProcessing = true;
+                // Send start signal
+                webSocket.send(JSON.stringify(startSig));
+
+                blob = blobQueue.pop();
+                webSocket.send(blob);
+
+                setTimeout(function(){
+                    webSocket.send(JSON.stringify(stopSig));
+                }, 1500);
+
+                console.log('Audio sent. sentenceId: ' + sentenceId);
+            } else {
+                console.log('blobQueue is empty now.');
+            }
         };
 
         var gotBuffers = function ( buffers ) {
@@ -200,22 +224,32 @@
             }
         };
 
+        var showReport = function() {
+            // Show the report
+            $("#reportShow").css('display','inline-block');
+            $('#reportShow').text(JSON.stringify(report, null, 4));
+        }
+
         var onMessage = function (evt) {
             console.log("onMessage: recognition result in json format: " + evt.data);
 
-            $("#layer2").css('display','none');
             // 'Next ?/10' button should be disabled before the results messages are received.
             var evtData = $.parseJSON(evt.data);
             if('results' in evtData){
+                console.log('Response Received. sentenceId: ' + sentenceId);
                 addItemToReport(evtData['results']);
+                isProcessing = false;
+                processBlobQueue();
 
-                if(sentenceId == sentenceNumInGroup + 1) {
-                    $("#sentenceShow").css('display','none');
-                } else {
-                    showSentence(sentenceId);
+                // If test is finished
+                if(sentenceId === sentenceNumInGroup + 1 && recordingSentenceId === sentenceNumInGroup + 1 && blobQueue.length === 0) {
+                    $("#next").prop('disabled', true);
+                    $("#back").prop('disabled', true);
+                    $("#layer2").css('display','none');
+                    showReport();
+                    testIsFinished = true;
+                    webSocket.close();
                 }
-                $('#next').prop('disabled', false);
-                $("#back").prop('disabled', false);
             }
 
             //TODO: if('error' in evtData)
@@ -223,8 +257,9 @@
 
         var onClose = function(evt) {
             console.log("Connection is Closed!");
+
             if(!testIsFinished && haveTried < 6) {
-                console.log("Reconnecting " + haveTried);
+                console.log("onClose: Reconnecting " + haveTried);
                 haveTried ++;
                 webSocketConnect();
 
@@ -232,14 +267,27 @@
                 $('#next').prop('disabled', false);
                 $("#back").prop('disabled', false);
             } else if(testIsFinished){
-                console.log("Test is finished");
+                console.log("onClose: Test is finished");
             } else {
-                console.log("Something bad happens, since I have tried" + 6 + "times but all failed.");
+                $("#sessionExpiredInfo").css('display','block');
+                console.log("onClose: Something bad happens, since I have tried " + 6 + " times but all failed.");
             }
         };
 
         var onOpen = function(evt) {
-            console.log("Connection is Open!");
+            console.log("onOpen: Connection is Open!");
+        };
+
+        var onError = function(evt) {
+            var evtData = $.parseJSON(evt.data);
+
+            console.log("onError: " + evtData);
+
+            var message = evtData['error'];
+            var sessionTimeOut = "Session timed out";
+            if(message.indexOf(sessionTimeOut) == -1) {
+                $("#errorInfo").css('display','block');
+            }
         };
 
         var getToken = function(){
@@ -261,45 +309,38 @@
         };
 
         var webSocketConnect = function() {
-            websocket = new WebSocket(wsURI);
+            webSocket = new WebSocket(wsURI);
 
-            websocket.onmessage = function(evt) { onMessage(evt); };
-            websocket.onopen = function(evt) { onOpen(evt); };
-            websocket.onclose = function(evt) { onClose(evt); };
+            webSocket.onmessage = function(evt) { onMessage(evt); };
+            webSocket.onopen = function(evt) { onOpen(evt); };
+            webSocket.onclose = function(evt) { onClose(evt); };
+            webSocket.onerror = function(evt) { onError(evt) };
         };
 
         var nextSwithFunc = function(elem){
-            if (elem.classList.contains("recording") && sentenceId <= sentenceNumInGroup) {
+            if (elem.classList.contains("recording") && recordingSentenceId <= sentenceNumInGroup) {
                 // stop recording
                 audioRecorder.stop();
-                console.log('Your voice has been recorded.');
+                console.log('======Your voice has been recorded.');
                 elem.classList.remove("recording");
-
                 /* Disable 'Next' &'Back' button until an message containing 'results' is received.
                    Show the Spinner
                 */
-                var showId = sentenceId + 1;
-                if(showId <= sentenceNumInGroup) {
-                    $(elem).text('Next '); // + showId + '/' + sentenceNumInGroup
+                recordingSentenceId++;
+                if(recordingSentenceId <= sentenceNumInGroup) {
+                    $("#next").text('Next '); // + showId + '/' + sentenceNumInGroup
                 } else {
                     // showId is 11 now. all the tests have been finished. Last sending action will be finished.
-                    $(elem).text('Get Report!');
+                    $("#next").text('Get Report!');
                 }
-                $("#back").prop('disabled', true);
-                $(elem).prop('disabled', true);
-                $("#layer2").css('display','block');
-
                 audioRecorder.getBuffers( gotBuffers );
 
-            } else if( !(elem.classList.contains("recording")) && sentenceId <= sentenceNumInGroup){
+            } else if( !(elem.classList.contains("recording")) && recordingSentenceId <= sentenceNumInGroup){
                 // start recording
                 if (!audioRecorder)
                     return;
-                console.log("SentenceID: " + sentenceId);
-                console.log('Recording your voice......');
-
-                // Send start signal
-                websocket.send(JSON.stringify(startSig));
+                console.log("======recordingSentenceId: " + recordingSentenceId);
+                console.log('======Recording your voice......');
 
                 // start recording
                 elem.classList.add("recording");
@@ -307,18 +348,16 @@
                 audioRecorder.record();
 
                 // Show the sentence that the user should be reading now.
-                showSentence(sentenceId);
-                $(elem).text('Recording...');
+                showSentence(recordingSentenceId);
+                $("#next").text('Recording...');
 
             } else {
                 // This block happens when sentenceId == 11. We will show the report and finally we will disable all buttons.
-                testIsFinished = true;
-                $(elem).prop('disabled', true);
-                $("#back").prop('disabled', true);
 
-                // Show the report
-                $("#reportShow").css('display','inline-block');
-                $('#reportShow').text(JSON.stringify(report, null, 4));
+                $("#next").prop('disabled', true);
+                $("#back").prop('disabled', true);
+                $("#layer2").css('display','block');
+
                 console.log(logs);
             }
         };

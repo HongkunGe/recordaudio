@@ -198,7 +198,7 @@
             humanVoiceRatio = Math.max(humanVoiceRatio, average(ratioQueue));
             humanVoiceEnergy = Math.max(humanVoiceEnergy, average(energyQueue));
 
-            console.log("Noise test is Done! Human Voice Ratio is " + humanVoiceRatio);
+            console.log("======Noise test is Done! Human Voice Ratio is " + humanVoiceRatio);
 
             if(humanVoiceRatio > HUMAN_VOICE_RATIO_THRESHOLD && humanVoiceEnergy > HUMAN_VOICE_THRESHOLD) {
                 // $("#successInfo").html("<br>" + "Yeah! You have just passed the test! Now you can go to formal voice test.");
@@ -212,7 +212,7 @@
         } else {
             elem.classList.add("testing");
             $(elem).text("Testing...");
-            console.log("Noise test is running...");
+            console.log("======Noise test is running...");
             isNoiseDetection = true;
             humanVoiceEnergy = 0;
             humanVoiceRatio = 0;
