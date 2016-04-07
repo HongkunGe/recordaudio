@@ -9,7 +9,6 @@
         var voiceTestSection = document.querySelector('#VoiceTest');
 
         var source;
-        var stream;
         var analyzer = audioContext.createAnalyser();
         var gainNode = audioContext.createGain();
         var audioRecorder = null;
@@ -23,27 +22,49 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 3;
+        var sentenceNumInGroup = 10;
         var sentenceGroupId = 1;
         var sentenceId = 1;
         var recordingSentenceId = 1;
+        var sentenceDeferredMinusOne = 0;
         var blobQueue = [];
+        blobQueue.pop_back = blobQueue.pop;  // blobQueue is a deque, pop from back.
         blobQueue.pop = blobQueue.shift;
+
+        // tag certain sentence that has been transcripted or not.
+        // TODO: Use operations to store the status of sentences.
+        var hasBeenProcessed = [];
+
         var isProcessing = false;
         var startPos = 3;
+
+        var getReports = false;
 
         var testIsFinished = false;
         var haveTried = 1;
         var totalScore = 0;
         var report = {
-            'emptyResultsReturned': 0,
-            'sentenceCount': 0,
-            'average': 0,
             'results':[],
-            'deleted':[]
+            'events':[]
         };
-        var operations = [];
-        var logs = [];
+        var statistics = {
+            'average': 0,
+            'median': 0,
+            'max': 0,
+            'min':0
+        };
+        var initialArray = function() {
+            hasBeenProcessed.pop_back = hasBeenProcessed.pop;  // blobQueue is a deque, pop from back.
+            hasBeenProcessed.pop = hasBeenProcessed.shift;
+            for(var i = 0; i < sentenceNumInGroup; i++) {
+                hasBeenProcessed.push(false);
+            }
+
+            for(var i = 0; i < sentenceNumInGroup; i++) {
+                report['events'].push([]);
+                report['results'].push(null);
+            }
+        };
 
         var getStream = function(stream){
             gainNode.gain.value = 0;
@@ -125,6 +146,7 @@
                 var end = start + sentenceNumInGroup;
                 // only get the first sentence.
                 selectedSentences = sentenceDic.slice(start, end);
+                showSentence(recordingSentenceId);
             }, 'text');
         };
 
@@ -169,66 +191,149 @@
         }
 
         var addItemToReport = function(evtResult) {
-            // All all the details to the report.
-            if(evtResult.length == 0) {
+            var stRecogized;
+            var stOriginal = selectedSentences[sentenceId - 1];
+            var score;
 
-                // Push 0 to operations: We got an empty result from IBM Watson.
-                operations.push(0);
-                // Sometimes results is empty. Eliminate this one.
-                report['emptyResultsReturned'] ++;
-                $("#noiseAttention").css('display','block');
-            } else {
-                // // Push 0 to operations: We got a normal result from IBM Watson.
-                operations.push(1);
-                report['sentenceCount'] ++;
-                var stRecogized = evtResult[0]['alternatives'][0]['transcript'];
-                var stOriginal = selectedSentences[sentenceId - 1];
-
+            var recordItem = function() {
                 var item = {
+                    'sentenceId': sentenceId,
+                    "recordingSentenceId": recordingSentenceId,
                     'originalSentence': stOriginal,
                     'recogizedSentence': stRecogized,
-                    'score': sentenceScore(stRecogized, stOriginal)
+                    'score': score
                 };
-                report['results'].push(item);
+                // Assign new item to pre-allocated space.
+                report['results'][sentenceId - 1] = item;
+                report['events'][sentenceId - 1].push(
+                    {
+                        "item": item,
+                        "event": "added"
+                    }
+                );
                 totalScore += item['score'];
+            };
+            // All all the details to the report.
+            if(evtResult.length == 0) {
+                // $("#noiseAttention").css('display','block');
+                stRecogized = "";
+                score = 0;
+            } else {
+                stRecogized = evtResult[0]['alternatives'][0]['transcript'];
+                score = sentenceScore(stRecogized, stOriginal);
             }
-
+            recordItem();
             // When sentenceId == sentenceNumInGroup 10 as default, we won't enable 'Next' Button, but switch to ''GetReport' button and enable it.
             // sentenceId should be 11, when calculating the score.
             sentenceId++;
+            sentenceId = sentenceId + sentenceDeferredMinusOne;
+            sentenceDeferredMinusOne = 0;
+
             if(sentenceId == sentenceNumInGroup + 1) {
-                report['average'] = Math.round(totalScore / report['sentenceCount']);
+                generateStatistics();
             }
         };
 
-        var deleteLastItemFromReport = function() {
-            // TODO: deleteLastItemFromReport or eliminate a 0. TEST
+        var generateStatistics = function() {
+            var scores = [];
+            var totalScore = 0;
+            var median = 0;
+            for(var i = 0; i < report['results'].length; i++) {
+                scores.push(report['results'][i]['score']);
+                totalScore += report['results'][i]['score'];
+            }
 
-            if(operations.length != 0) {
-                var lastOperation = operations.pop();
-                if(lastOperation == 1) {
-                    report['sentenceCount'] --;
-                    var lastItem = report['results'].pop();
-                    totalScore -= lastItem['score'];
-                    report['deleted'].push(lastItem);
-                } else {
-                    // Last Operation only give us an empty result, do nothing but below.
-                    report['emptyResultsReturned'] --;
-                    if(report['emptyResultsReturned'] < 0) {
-                        alert("Operations: emptyResultsReturned is less than 0!");
+            statistics['average'] = totalScore / scores.length;
+            scores.sort();
+
+            if(scores.length % 2){
+                median = scores[parseInt(scores.length / 2)];
+            } else {
+                median = (scores[parseInt(scores.length / 2)] + scores[parseInt(scores.length / 2) - 1]) / 2;
+            }
+            statistics['median'] = median;
+            statistics['max'] = scores[scores.length - 1];
+            statistics['min'] = scores[0];
+        };
+
+        var deleteLastItemFromReport = function() {
+            var info = JSON.stringify({
+                "sentenceId": sentenceId,
+                "recordingSentenceId": recordingSentenceId,
+                "blobQueue.length": blobQueue.length
+            });
+            // if there is untranscripted blob in the blobQueue, pop_back
+            // no such case recordingSentenceId > sentenceId && blobQueue.length == 0, since back button is clicked, recordingSentenceId-- =>
+            if(recordingSentenceId > sentenceId && blobQueue.length > 0) {
+                  console.log("pop_back blobQueue. " + info);
+                  blobQueue.pop_back();
+
+            } else if(recordingSentenceId == sentenceId && blobQueue.length > 0) {
+                  // if I redo the same sentence several times, this block will be triggered.
+                  console.log("Duplicate returns. " + info);
+                  blobQueue.pop_back();
+
+            // clicked back during transcripting. recordingSentenceId - sentenceId must be 0, sinse back is click, recordingSentenceId 3=>2, sentenceId is 2.
+            } else if(recordingSentenceId == sentenceId && blobQueue.length == 0) {
+                  // Try to delete the one that is being transcripted by IBM.
+                  // The one to be sent back from IBM will be replaced by new one.
+                  console.log("Mark Deferred. " + info);
+                  var item = {
+                      "recordingSentenceId": recordingSentenceId,
+                      "sentenceId": sentenceId,
+                      'recogizedSentence': "has not come out yet"
+                  };
+                  report['events'][sentenceId - 1].push(
+                      {
+                          "item": item,
+                          "event": "deleted"
+                      }
+                  );
+                  // for example, the 1st one: sentenceId 1=>0 here virtually, but once the transcription come back, onMessage is called, sentenceId++ => 1 again.
+                  sentenceDeferredMinusOne = -1;
+
+            } else if(recordingSentenceId < sentenceId) {
+
+                console.log("Ready to replace old one. " + info);
+                // recordingSentenceId - sentenceId must be -1
+                // when all sentences recorded has been transcripted and stored.
+                // replace the old one.
+                sentenceId --; // => become recordingSentenceId
+                report['events'][sentenceId - 1].push(
+                    {
+                        "item": report['results'][sentenceId - 1],
+                        "event": "deleted"
                     }
-                }
+                );
 
             } else {
-                alert("Operations: We have deleted all sentences!");
+                console.log("ERROR! message:" + info);
             }
+
         };
 
         var showReport = function() {
             // Show the report
             $("#reportShow").css('display','inline-block');
-            $('#reportShow').text(JSON.stringify(report, null, 4));
+            $('#reportShow').text(JSON.stringify(statistics, null, 4) + '\n' + JSON.stringify(report, null, 4));
+            $("#voiceTestScrollBtn").css('display','inline-block');
+            $("#operationInfo").css('display','none');
+            $("#sentenceShow").css('display','none');
+            // $("#reportInfo").css('display','inline-block');
         }
+
+        var testAndShutDown = function() {
+            // If test is finished
+            if(getReports && sentenceId === sentenceNumInGroup + 1 && recordingSentenceId === sentenceNumInGroup + 1 && blobQueue.length === 0) {
+                $("#next").prop('disabled', true);
+                $("#back").prop('disabled', true);
+                $("#layer2").css('display','none');
+                showReport();
+
+                testIsFinished = true;
+                webSocket.close();
+            }
+        };
 
         var onMessage = function (evt) {
             console.log("onMessage: recognition result in json format: " + evt.data);
@@ -239,17 +344,9 @@
                 console.log('Response Received. sentenceId: ' + sentenceId);
                 addItemToReport(evtData['results']);
                 isProcessing = false;
-                processBlobQueue();
+                processBlobQueue(); //chained
 
-                // If test is finished
-                if(sentenceId === sentenceNumInGroup + 1 && recordingSentenceId === sentenceNumInGroup + 1 && blobQueue.length === 0) {
-                    $("#next").prop('disabled', true);
-                    $("#back").prop('disabled', true);
-                    $("#layer2").css('display','none');
-                    showReport();
-                    testIsFinished = true;
-                    webSocket.close();
-                }
+                testAndShutDown();
             }
 
             //TODO: if('error' in evtData)
@@ -257,6 +354,8 @@
 
         var onClose = function(evt) {
             console.log("Connection is Closed!");
+
+            //TODO: If test is finished
 
             if(!testIsFinished && haveTried < 6) {
                 console.log("onClose: Reconnecting " + haveTried);
@@ -270,6 +369,9 @@
                 console.log("onClose: Test is finished");
             } else {
                 $("#sessionExpiredInfo").css('display','block');
+                $("#layer2").css('display','none');
+                $('#next').prop('disabled', true);
+                $("#back").prop('disabled', true);
                 console.log("onClose: Something bad happens, since I have tried " + 6 + " times but all failed.");
             }
         };
@@ -287,6 +389,7 @@
             var sessionTimeOut = "Session timed out";
             if(message.indexOf(sessionTimeOut) == -1) {
                 $("#errorInfo").css('display','block');
+                $("#layer2").css('display','none');
             }
         };
 
@@ -327,6 +430,10 @@
                    Show the Spinner
                 */
                 recordingSentenceId++;
+                // Show the sentence that the user should be reading now.
+                showSentence(recordingSentenceId);
+                $("#back").prop('disabled', false);
+
                 if(recordingSentenceId <= sentenceNumInGroup) {
                     $("#next").text('Next '); // + showId + '/' + sentenceNumInGroup
                 } else {
@@ -347,8 +454,6 @@
                 audioRecorder.clear();
                 audioRecorder.record();
 
-                // Show the sentence that the user should be reading now.
-                showSentence(recordingSentenceId);
                 $("#next").text('Recording...');
 
             } else {
@@ -358,19 +463,21 @@
                 $("#back").prop('disabled', true);
                 $("#layer2").css('display','block');
 
-                console.log(logs);
+                getReports = true;
+
+                testAndShutDown();
             }
         };
 
         var backSwithFunc = function() {
             // back to last sentence
-            if(sentenceId - 1 > 0){
-                sentenceId = sentenceId - 1;
+            if(recordingSentenceId - 1 > 0){
+                recordingSentenceId = recordingSentenceId - 1;
                 // var showId = sentenceId + 1;
                 $('#next').text('Next '); // + showId + '/' + sentenceNumInGroup
-                showSentence(sentenceId);
+                showSentence(recordingSentenceId);
 
-                console.log("Back to last Sentence " + sentenceId);
+                console.log("Back to last Sentence " + recordingSentenceId);
                 deleteLastItemFromReport();
             } else {
                 $("#back").prop('disabled', true);
@@ -379,18 +486,17 @@
 
         $('#next').click(function(){
             $("#noiseAttention").css('display','none');
-            logs.push('addNewItem');
             nextSwithFunc(this);
         });
 
         $('#back').click(function(){
             $("#noiseAttention").css('display','none');
-            logs.push('deleteAnItem');
             backSwithFunc(this);
         });
 
         $('#startTest').click(function(){
             $("#voiceTestSection").css('display','inline-block');
+            $("#participationInfo").css('display','none');
             $("#next").prop('disabled', false);
             $("#play").prop('disabled', false);
             $("#save").prop('disabled', false);
@@ -400,6 +506,7 @@
             loadSentence();
         });
 
+        initialArray();
         initialAudio();
 
 })(jQuery);

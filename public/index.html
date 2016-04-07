@@ -140,30 +140,33 @@
             <div class="col-lg-8 col-lg-offset-2">
                 <h2>Voice Test</h2>
                 <div>
-                    <p>Do you want to participate in the Intelligibility voice test? (Press "Y" key for "YES" or click the button below.)</p>
-                    <button id = "startTest" type="button" class="btn btn-default btn-lg" >I am in!</button>
-                    <br>
-                        <div id = "voiceTestSection" style="display: none;">
-                            <p>There are 10 sentences in the test group. Please hold "SHIFT" key to record your voice and release it to submit the audio. You can press "B" key for returning back to redo the tasks. After you finish all 10 sentences,
-                                we will give you a detailed report. Click button below or press "SHIFT" key to get the report.
-                            </p>
-                            <button id = "back" type="button" class="btn btn-default btn-lg" disabled>Back</button>
-                            <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Start</button>
-                            <button id = "play" type="button" class="btn btn-default btn-lg"  style="display: none;" disabled>Play</button>
-                            <a id="save" href="#" class="btn btn-link btn-lg">save</a>
+                    <div id = "participationInfo">
+                        <p>Do you want to participate in the Intelligibility voice test? Press "Y" key or click the button if yes. There're 10 sentences in the test.</p>
+                        <button id = "startTest" type="button" class="btn btn-default btn-lg" >I am in!</button>
+                        <br>
+                    </div>
+                    <div id = "voiceTestSection" style="display: none;">
+                        <p id = "operationInfo" class = "info">Hold "SHIFT" key to record voice and release it to submit the audio. Press "B" key to redo the tasks.
+                        </p>
+                        <p id = "reportInfo" style="display: none;" class = "info">Great! You finish it. Here's your report.</p>
 
-                            <p id = "sentenceShow" type="text" style = "font-size:250%"></p>
-                            <p id = "noiseAttention" type = "text" style="display: none;">
-                                Oops! It seems that I cannot hear you clearly. Please CLICK the "BACK" Button and redo this one. Please speak louder and make sure the environment is quiet.
-                            </p>
-                            <p id = "errorInfo" style="display: none;">Oops! Some unexpected error happens on the connection! Please refresh the browser.</p>
-                            <p id = "sessionExpiredInfo" style="display: none;">Oops! Session Expired! Please refresh the browser.</p>
-                            <pre id = "reportShow" type="text" style = "text-align:left; display:none;"></pre>
-                      </div>
-                </div>
-                <a href="#upload" class="btn btn-circle page-scroll">
-                    <i class="fa fa-angle-double-down animated"></i>
-                </a>
+                        <p id = "sentenceShow" type="text" style = "font-size:350%"></p>
+
+                        <button id = "back" type="button" class="btn btn-default btn-lg" disabled>Back</button>
+                        <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Press Shift</button>
+                        <button id = "play" type="button" class="btn btn-default btn-lg"  style="display: none;" disabled>Play</button>
+                        <a id="save" href="#" class="btn btn-link btn-lg">save</a>
+                        <p id = "noiseAttention" type = "text" style="display: none;" class = "info">
+                            Oops! It seems that I cannot hear you clearly. Please CLICK the "BACK" Button and redo this one. Please speak louder and make sure the environment is quiet.
+                        </p>
+                        <p id = "errorInfo" style="display: none;" class = "info">Oops! Some unexpected error happens on the connection! Please refresh the browser.</p>
+                        <p id = "sessionExpiredInfo" style="display: none;" class = "info">Oops! Session Expired! Please refresh the browser.</p>
+                        <pre id = "reportShow" type="text" style = "text-align:left; display:none;"></pre>
+                  </div>
+              </div>
+              <a id = "voiceTestScrollBtn" href="#upload" class="btn btn-circle page-scroll" style="display: none;">
+                  <i class="fa fa-angle-double-down animated"></i>
+              </a>
             </div>
         </div>
     </section>
