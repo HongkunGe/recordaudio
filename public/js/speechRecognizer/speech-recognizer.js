@@ -22,7 +22,7 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 10;
+        var sentenceNumInGroup = 2;
         var sentenceGroupId = 1;
         var sentenceId = 1;
         var recordingSentenceId = 1;
@@ -314,12 +314,49 @@
 
         var showReport = function() {
             // Show the report
-            $("#reportShow").css('display','inline-block');
-            $('#reportShow').text(JSON.stringify(statistics, null, 4) + '\n' + JSON.stringify(report, null, 4));
+            // $("#reportShow").css('display','inline-block');
+            // $('#reportShow').text(JSON.stringify(statistics, null, 4) + '\n' + JSON.stringify(report, null, 4));
             $("#voiceTestScrollBtn").css('display','inline-block');
             $("#operationInfo").css('display','none');
             $("#sentenceShow").css('display','none');
             // $("#reportInfo").css('display','inline-block');
+
+            // Generate the table
+            var reportTableDiv = document.getElementById('reportShowTable');
+            var table = document.createElement('table');
+            var trh = document.createElement('tr');
+
+            var tdh1 = document.createElement('td');
+            var tdh2 = document.createElement('td');
+
+            var items = document.createTextNode("Items");
+            var scoreText = document.createTextNode("Score");
+
+            tdh1.appendChild(items);
+            tdh2.appendChild(scoreText);
+            trh.appendChild(tdh1);
+            trh.appendChild(tdh2);
+            table.appendChild(trh);
+
+            for(var key in statistics) {
+                var tr = document.createElement('tr');
+
+                var td1 = document.createElement('td');
+                var td2 = document.createElement('td');
+
+                var item = document.createTextNode(key);
+                var value = document.createTextNode(statistics[key]);
+                td1.appendChild(item);
+                td2.appendChild(value);
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                table.appendChild(tr);
+            }
+            reportTableDiv.appendChild(table);
+            $("#reportShowTable").css('display','inline-table');
+            $("#back").css('display','none');
+            $("#next").css('display','none');
+            $("#save").css('display','none');
         }
 
         var testAndShutDown = function() {
