@@ -22,7 +22,7 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 2;
+        var sentenceNumInGroup = 10;
         var sentenceGroupId = 1;
         var sentenceId = 1;
         var recordingSentenceId = 1;
