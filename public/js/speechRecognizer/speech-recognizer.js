@@ -6,13 +6,11 @@
 
         var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        var voiceTestSection = document.querySelector('#VoiceTest');
-
         var source;
         var analyzer = audioContext.createAnalyser();
         var gainNode = audioContext.createGain();
         var audioRecorder = null;
-        var recIndex = 0;
+        var recIndex = 0; // audio recording index for downloading name.
 
         var token = null;
         var wsURI = "wss://stream.watsonplatform.net/speech-to-text/api/v1/recognize?watson-token=";
@@ -23,20 +21,17 @@
 
         var selectedSentences;             // selected sentence group.
         var sentenceNumInGroup = 10;
-        var sentenceGroupId = 1;
-        var sentenceId = 1;
-        var recordingSentenceId = 1;
+        var sentenceId = 1;                // index of transcript sentences.
+        var recordingSentenceId = 1;       // index of recording sentences.
         var sentenceDeferredMinusOne = 0;
-        var blobQueue = [];
-        blobQueue.pop_back = blobQueue.pop;  // blobQueue is a deque, pop from back.
+        var blobQueue = [];                // blobQueue is a deque of audio blob data, pop from back and front.
+        blobQueue.pop_back = blobQueue.pop;
         blobQueue.pop = blobQueue.shift;
 
-        // tag certain sentence that has been transcripted or not.
-        // TODO: Use operations to store the status of sentences.
-        var hasBeenProcessed = [];
-
-        var isProcessing = false;
-        var startPos = 3;
+        var isProcessing = false;          // tagged as true from (sending the blob to Watson) to (receiving the transcript sentence).
+                                           // if isProcessing is true, we only push blob data to deque, the top one will be poped for sending and processing
+                                           // by Watson when current process ends(The result is received).
+        var startPos = 3;                  // start position of original sentences, used to eliminate the first number char.
 
         var getReports = false;
 
@@ -46,7 +41,7 @@
         var report = {
             'results':[],
             'events':[]
-        };
+        }; // recording all events happening during testing.
         var statistics = {
             'average': 0,
             'median': 0,
@@ -54,11 +49,6 @@
             'min':0
         };
         var initialArray = function() {
-            hasBeenProcessed.pop_back = hasBeenProcessed.pop;  // blobQueue is a deque, pop from back.
-            hasBeenProcessed.pop = hasBeenProcessed.shift;
-            for(var i = 0; i < sentenceNumInGroup; i++) {
-                hasBeenProcessed.push(false);
-            }
 
             for(var i = 0; i < sentenceNumInGroup; i++) {
                 report['events'].push([]);
@@ -141,7 +131,7 @@
                 // load a group of sentences into variable sentenceDic.
                 var sentenceDic = sentence.split("\n");
 
-                sentenceGroupId = parseInt(sentenceGroupId);
+                var sentenceGroupId = parseInt(Math.floor((Math.random() * 72) + 1));
                 var start = sentenceGroupId + (sentenceGroupId - 1) * 10;
                 var end = start + sentenceNumInGroup;
                 // only get the first sentence.
@@ -391,8 +381,6 @@
 
         var onClose = function(evt) {
             console.log("Connection is Closed!");
-
-            //TODO: If test is finished
 
             if(!testIsFinished && haveTried < 6) {
                 console.log("onClose: Reconnecting " + haveTried);
