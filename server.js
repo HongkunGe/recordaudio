@@ -115,6 +115,12 @@ var SampleApp = function() {
             res.setHeader('Content-Type', 'text/html');
             res.send(self.cache_get('index.html') );
         };
+
+        self.routes['http://recordaudio-hongkun.apps.unc.edu'] = function(req, res) {
+            res.redirect(301, 'https://recordaudio-hongkun.apps.unc.edu');
+        }
+
+        // local test
     };
 
 
