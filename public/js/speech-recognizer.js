@@ -488,7 +488,7 @@
             } else if(testIsFinished){
                 console.log("onClose: Test is finished");
             } else {
-                $("#sessionExpiredInfo").css('display','block');
+                $("#errorInfo").css('display','block');
                 $("#layer2").css('display','none');
                 $('#next').prop('disabled', true);
                 $("#back").prop('disabled', true);
