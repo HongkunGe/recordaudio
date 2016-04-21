@@ -12,6 +12,13 @@ p{
     height: 50%;
     width: 100%;
 }*/
+input#userID {
+    text-align: center;
+    /* position: relative; */
+    margin: auto;
+    width: 35%;
+}
+
 #content {
     display: table-cell;
     vertical-align: middle;

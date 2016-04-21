@@ -21,6 +21,7 @@
 
         var selectedSentences;             // selected sentence group.
         var sentenceNumInGroup = 10;
+        var sentenceGroupId;
         var sentenceId = 1;                // index of transcript sentences.
         var recordingSentenceId = 1;       // index of recording sentences.
         var sentenceDeferredMinusOne = 0;
@@ -48,11 +49,91 @@
             'max': 0,
             'min':0
         };
+
+        // zip all 10 files
+        var userID = "";
+        zip.workerScriptsPath = "js/lib/";
+        var typeOfAudio = "audio/wav";
+        var allBlobFiles = [];
+        allBlobFiles.pop = allBlobFiles.shift;
+
+        var zipModel = (function(){
+            var zipWriter, writer, URL = window.URL || window.mozURL || window.webkitURL;
+
+            return {
+                addFiles : function(files, oninit, onadd, onprogress, onend) {
+                    var addIndex = 0;
+                    var nextFile = function() {
+
+                        onadd("sentence_" + addIndex + ".wav"); //files[addIndex].name
+                        zipWriter.add("sentence_" + addIndex + ".wav", new zip.BlobReader(files[addIndex]), function() {
+                            addIndex ++;
+                            if(addIndex < files.length) {
+                                nextFile();
+                            } else {
+                                onend();
+                            }
+                        }, function(){
+                          onprogress(addIndex, files.length);
+                        });
+                    };
+
+                    var createZipWriter = function() {
+                        zip.createWriter(writer, function(writer){
+                            zipWriter = writer;
+                            oninit();
+                            nextFile();
+                        }, onerror);
+                    };
+
+                    if(zipWriter){
+                        nextFile();
+                    } else {
+                        writer = new zip.BlobWriter();
+                        createZipWriter();
+                    }
+                },
+
+                getBlobURL : function(callback) {
+                    zipWriter.close(function(zippedAllBlob) {
+                        var blobURL = URL.createObjectURL(zippedAllBlob);
+                        callback(blobURL);
+                        zipWriter = null;
+                    });
+                }
+            };
+        })();
+
+        var zipSetupDownload = function() {
+              var oninit = function() {
+                  console.log("model.addFiles oninit");
+              };
+
+              var onadd = function(fileName) {
+                  console.log("file added: " + fileName);
+              };
+
+              var onprogress = function(current, total){
+                  console.log("%s %s", current, total);
+              };
+
+              var onend = function() {
+                  zipModel.getBlobURL(function(url){
+                      var link = document.getElementById("save");
+                      link.href = url;
+                      link.download = "UNC_User_" + userID + "_HarvSentence_" + sentenceGroupId + '.zip';
+                  });
+              };
+              zipModel.addFiles(allBlobFiles, oninit, onadd, onprogress, onend);
+
+        };
+
         var initialArray = function() {
 
             for(var i = 0; i < sentenceNumInGroup; i++) {
                 report['events'].push([]);
                 report['results'].push(null);
+                allBlobFiles.push(null);
             }
         };
 
@@ -75,8 +156,8 @@
             if(blobQueue.length == 1 && !isProcessing) {
                 processBlobQueue();
             }
-            Recorder.setupDownload( blob, "myRecording" + ((recIndex<10)?"0":"") + recIndex + ".wav" );
-            recIndex++;
+            // Recorder.setupDownload( blob, "myRecording" + ((recIndex<10)?"0":"") + recIndex + ".wav" );
+            // recIndex++;
         };
 
         var processBlobQueue = function() {
@@ -127,11 +208,13 @@
         };
 
         var loadSentence = function(){
-            $.get('js/speechRecognizer/harvsents.txt', function(sentence){
+            $.get('js/lib/harvsents.txt', function(sentence){
                 // load a group of sentences into variable sentenceDic.
                 var sentenceDic = sentence.split("\n");
 
-                var sentenceGroupId = parseInt(Math.floor((Math.random() * 72) + 1));
+                sentenceGroupId = parseInt(Math.floor((Math.random() * 72) + 1));
+
+                console.log("Group ID: " + sentenceGroupId);
                 var start = sentenceGroupId + (sentenceGroupId - 1) * 10;
                 var end = start + sentenceNumInGroup;
                 // only get the first sentence.
@@ -202,6 +285,13 @@
                     }
                 );
                 totalScore += item['score'];
+
+                // Assign the blob data to allBlobData
+                // var form = new FormData()
+                // form.append("blob", blob, filename);
+                allBlobFiles[sentenceId - 1] =  new Blob([blob], {
+                    type : "audio/wav"
+                });
             };
             // All all the details to the report.
             if(evtResult.length == 0) {
@@ -234,7 +324,9 @@
             }
 
             statistics['average'] = totalScore / scores.length;
-            scores.sort();
+            scores.sort(function(a, b){return a-b});
+
+            console.log(scores);
 
             if(scores.length % 2){
                 median = scores[parseInt(scores.length / 2)];
@@ -346,7 +438,10 @@
             $("#reportShowTable").css('display','inline-table');
             $("#back").css('display','none');
             $("#next").css('display','none');
-            $("#save").css('display','none');
+
+            // show download
+            zipSetupDownload();
+            $("#save").css('display','inline-table');
         }
 
         var testAndShutDown = function() {
@@ -520,15 +615,23 @@
         });
 
         $('#startTest').click(function(){
-            $("#voiceTestSection").css('display','inline-block');
-            $("#participationInfo").css('display','none');
-            $("#next").prop('disabled', false);
-            $("#play").prop('disabled', false);
-            $("#save").prop('disabled', false);
-            $('#startTest').prop('disabled', true);
+            var idInput = $("#userID").val();
+            console.log("userID: " + idInput);
 
-            getToken();
-            loadSentence();
+            if(idInput.length == 0) {
+                alert("Please input your ID provided by doctor, then click the button below.");
+            } else {
+                userID = idInput;
+                $("#voiceTestSection").css('display','inline-block');
+                $("#participationInfo").css('display','none');
+                $("#next").prop('disabled', false);
+                $("#play").prop('disabled', false);
+                $("#save").prop('disabled', false);
+                $('#startTest').prop('disabled', true);
+
+                getToken();
+                loadSentence();
+            }
         });
 
         initialArray();

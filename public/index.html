@@ -141,12 +141,15 @@
                 <h2>Voice Test</h2>
                 <div>
                     <div id = "participationInfo">
-                        <p>Do you want to participate in the Intelligibility voice test? Press "Y" key or click the button if yes. There're 10 sentences in the test.</p>
-                        <button id = "startTest" type="button" class="btn btn-default btn-lg" >I am in!</button>
+                        <p>Do you want to participate in the Intelligibility test? If yes, fill in your id first, then press "Y" key or click the button.</p>
+                        <form id = "userIDForm">
+                            <input id = "userID" type="text" placeholder="User ID" class="form-control">
+                            <button id = "startTest" type = "submit" class="btn btn-default btn-lg" >I am in!</button>
+                        </form>
                         <br>
                     </div>
                     <div id = "voiceTestSection" style="display: none;">
-                        <p id = "operationInfo" class = "info">Hold "SHIFT" key to record voice and release it to submit the audio. Press "B" key to redo the tasks.
+                        <p id = "operationInfo" class = "info">Hold "SHIFT" key to record voice and release it to submit the audio. Press "B" key to redo the tasks. 10 sentence in Total.
                         </p>
                         <p id = "reportInfo" style="display: none;" class = "info">Great! You finish it. Here's your report.</p>
 
@@ -155,7 +158,7 @@
                         <button id = "back" type="button" class="btn btn-default btn-lg" disabled>Back</button>
                         <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Press Shift</button>
                         <button id = "play" type="button" class="btn btn-default btn-lg"  style="display: none;" disabled>Play</button>
-                        <a id="save" href="#" class="btn btn-link btn-lg">save</a>
+                        <a id="save" href="#" class="btn btn-link btn-lg"  style="display: none;">Click to Download Your Audio</a>
                         <p id = "noiseAttention" type = "text" style="display: none;" class = "info">
                             Oops! It seems that I cannot hear you clearly. Please CLICK the "BACK" Button and redo this one. Please speak louder and make sure the environment is quiet.
                         </p>
@@ -234,16 +237,18 @@
 
     <!-- Plugin JavaScript -->
     <script src="decoration/js/jquery.easing.min.js"></script>
-
-    <script src="js/drawBar/drawBar.js"></script>
-    <!-- <script src="js/debug.js"></script> -->
-    <script src="js/keyManager.js"></script>
     <!-- Custom Theme JavaScript -->
     <script src="decoration/js/grayscale.js"></script>
 
-    <script type="text/javascript" src="js/recorderjs/recorder.js"></script>
+    <script type="text/javascript" src="js/drawBar.js"></script>
+    <!-- <script src="js/debug.js"></script> -->
+    <script type="text/javascript" src="js/keyManager.js"></script>
+
+    <script type="text/javascript" src="js/zip.js"></script>
+
+    <script type="text/javascript" src="js/recorder.js"></script>
     <!-- <script type="text/javascript" src="js/speechRecognizer/textarea-helper.js"></script> -->
-    <script type="text/javascript" src="js/speechRecognizer/speech-recognizer.js"></script>
+    <script type="text/javascript" src="js/speech-recognizer.js"></script>
 
 </body>
 
