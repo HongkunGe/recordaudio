@@ -142,8 +142,8 @@
                     <div id = "participationInfo">
                         <p>Do you want to participate in the Intelligibility test? If yes, fill in your id first, then press "Y" key or click the button.</p>
                         <form id = "userIDForm">
-                            <input id = "userID" type="text" placeholder="User ID" class="form-control">
-                            <button id = "startTest" type = "submit" class="btn btn-default btn-lg">I am in!</button>
+                            <input id = "userID" type="text" pattern="[A-Za-z0-9]+" placeholder="User ID" class="form-control">
+                            <button id = "startTest" type = "submit" class="btn btn-default btn-lg" disabled>I am in!</button>
                         </form>
                         <p id = "userIDAttention" type = "text" style="display: none;" class = "info">
                             Please input your ID provided by doctor, then click the button below.

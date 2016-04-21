@@ -20,7 +20,7 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 2;
+        var sentenceNumInGroup = 10;
         var sentenceGroupId;
         var sentenceId = 1;                // index of transcript sentences.
         var recordingSentenceId = 1;       // index of recording sentences.
@@ -626,26 +626,36 @@
             var idInput = $("#userID").val();
             console.log("userID: " + idInput);
 
-            if(idInput.length == 0) {
-                $("#userIDAttention").css('display','inline-block');
+            userID = idInput;
+            $("#voiceTestSection").css('display','inline-block');
+            $("#participationInfo").css('display','none');
+            $("#userIDAttention").css('display','none');
 
-            } else {
-                userID = idInput;
-                $("#voiceTestSection").css('display','inline-block');
-                $("#participationInfo").css('display','none');
-                $("#userIDAttention").css('display','none');
+            $("#next").prop('disabled', false);
+            $("#play").prop('disabled', false);
+            $("#save").prop('disabled', false);
+            $('#startTest').prop('disabled', true);
 
-                $("#next").prop('disabled', false);
-                $("#play").prop('disabled', false);
-                $("#save").prop('disabled', false);
-                $('#startTest').prop('disabled', true);
+            getToken();
+            loadSentence();
+            initialArray();
+            initialAudio();
+            testModule.initialAudio();
 
-                getToken();
-                loadSentence();
-                initialArray();
-                initialAudio();
-                testModule.initialAudio();
-            }
         });
 
+        var checkStartTestBtn = function() {
+            var idInput = $("#userID").val();
+            var pattern = /^[a-z0-9]+$/i;
+            var isValid = pattern.test(idInput);
+            if(isValid) {
+                $('#startTest').prop('disabled', false);
+                $("#userIDAttention").css('display','none');
+              } else {
+                $('#startTest').prop('disabled', true);
+                $("#userIDAttention").css('display','inline-block');
+            }
+        };
+
+        document.getElementById("userID").onkeyup = checkStartTestBtn;
 })(jQuery);
