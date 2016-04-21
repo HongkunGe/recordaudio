@@ -1,5 +1,5 @@
 
-(function($) {
+var testModule = (function() {
     // fork getUserMedia for multiple browser versions, for those
     // that need prefixes
 
@@ -15,8 +15,6 @@
     var source;
     var drawEnabled = false;
     // grab the mute button to use below
-
-    var noiseTest = document.querySelector('#noiseTestBtn');
 
     var analyserStream = audioCtx.createAnalyser();
     analyserStream.minDecibels = -70;
@@ -168,6 +166,16 @@
                 // humanVoiceEnergy = Math.max(humanVoiceEnergy, average(energyQueue));
                 energyQueue.pop();
                 energyQueue.push(newHumanVoiceEnergy);
+
+                // Only if ratioQueue is long enough, we begin to test.
+                humanVoiceRatio = Math.max(humanVoiceRatio, average(ratioQueue));
+                humanVoiceEnergy = Math.max(humanVoiceEnergy, average(energyQueue));
+
+                if(humanVoiceRatio > HUMAN_VOICE_RATIO_THRESHOLD && humanVoiceEnergy > HUMAN_VOICE_THRESHOLD) {
+                    // TODO
+                } else {
+                    document.getElementById("noiseAttention").style.display = "block";
+                }
             }
             // console.log("ratioQueue: " + ratioQueue.toString());
             // console.log("energyQueue: " + energyQueue.toString());
@@ -186,32 +194,16 @@
         setInterval(actionsPerFrame, 1000 / FPS);
     };
 
-    $("#noiseTestBtn").click(function(){
-        noiseTestFunc(this);
-    });
-
     var noiseTestFunc = function(elem){
         if (elem.classList.contains("testing")) {
             elem.classList.remove("testing");
-            $(elem).text("Noise Test");
-            isNoiseDetection = false;
-            humanVoiceRatio = Math.max(humanVoiceRatio, average(ratioQueue));
-            humanVoiceEnergy = Math.max(humanVoiceEnergy, average(energyQueue));
 
             console.log("======Noise test is Done! Human Voice Ratio is " + humanVoiceRatio);
-
-            if(humanVoiceRatio > HUMAN_VOICE_RATIO_THRESHOLD && humanVoiceEnergy > HUMAN_VOICE_THRESHOLD) {
-                // $("#successInfo").html("<br>" + "Yeah! You have just passed the test! Now you can go to formal voice test.");
-                // $('#noiseTestScrollBtn').css('display','inline-block');
-                // $("#startTest").prop('disabled', false);
-            } else {
-                // $("#successInfo").html("<br>" + "Oops! You may speak louder and make sure the environment is quiet.");
-                $("#noiseAttention").css('display','block');
-            }
+            isNoiseDetection = false;
             // console.log("maxTotal: " + maxTotal + " minTotal: " + minTotal);
         } else {
             elem.classList.add("testing");
-            $(elem).text("Testing...");
+            // $(elem).text("Testing...");
             console.log("======Noise test is running...");
             isNoiseDetection = true;
             humanVoiceEnergy = 0;
@@ -248,5 +240,13 @@
         return sum / array.length;
     };
 
-    initialAudio();
-})(jQuery);
+    var getNoiseDetection = function(){
+        return isNoiseDetection;
+    }
+    // initialAudio();
+    return {
+        initialAudio : initialAudio,
+        noiseTestFunc : noiseTestFunc,
+        getNoiseDetection : getNoiseDetection
+    };
+})();

@@ -102,7 +102,6 @@
                         <br> <span style = "font-size: 25px;">The beauty of the view stunned the young boy. </span>
                     </p>
 
-                    <a id = "noiseTestBtn" class="btn btn-default btn-lg">Noise Test</a>
                     <p id = "successInfo"></p>
                     <form class="controls" style="display: none;">
                         <div>
@@ -144,8 +143,11 @@
                         <p>Do you want to participate in the Intelligibility test? If yes, fill in your id first, then press "Y" key or click the button.</p>
                         <form id = "userIDForm">
                             <input id = "userID" type="text" placeholder="User ID" class="form-control">
-                            <button id = "startTest" type = "submit" class="btn btn-default btn-lg" >I am in!</button>
+                            <button id = "startTest" type = "submit" class="btn btn-default btn-lg">I am in!</button>
                         </form>
+                        <p id = "userIDAttention" type = "text" style="display: none;" class = "info">
+                            Please input your ID provided by doctor, then click the button below.
+                        </p>
                         <br>
                     </div>
                     <div id = "voiceTestSection" style="display: none;">
@@ -159,6 +161,8 @@
                         <button id = "next" type="button" class="btn btn-default btn-lg" disabled>Press Shift</button>
                         <button id = "play" type="button" class="btn btn-default btn-lg"  style="display: none;" disabled>Play</button>
                         <a id="save" href="#" class="btn btn-link btn-lg"  style="display: none;">Click to Download Your Audio</a>
+
+
                         <p id = "noiseAttention" type = "text" style="display: none;" class = "info">
                             Oops! It seems that I cannot hear you clearly. Please CLICK the "BACK" Button and redo this one. Please speak louder and make sure the environment is quiet.
                         </p>

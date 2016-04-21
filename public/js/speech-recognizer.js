@@ -20,7 +20,7 @@
         var stopSig = {"action": "stop"};
 
         var selectedSentences;             // selected sentence group.
-        var sentenceNumInGroup = 10;
+        var sentenceNumInGroup = 2;
         var sentenceGroupId;
         var sentenceId = 1;                // index of transcript sentences.
         var recordingSentenceId = 1;       // index of recording sentences.
@@ -121,7 +121,7 @@
                   zipModel.getBlobURL(function(url){
                       var link = document.getElementById("save");
                       link.href = url;
-                      link.download = "UNC_User_" + userID + "_HarvSentence_" + sentenceGroupId + '.zip';
+                      link.download = "UNC_USER_" + userID + "_HARVSENTENCE_" + sentenceGroupId + '.zip';
                   });
               };
               zipModel.addFiles(allBlobFiles, oninit, onadd, onprogress, onend);
@@ -605,7 +605,15 @@
         };
 
         $('#next').click(function(){
-            $("#noiseAttention").css('display','none');
+
+            if(!testModule.getNoiseDetection()) {
+                $("#noiseAttention").css('display','none');
+            }
+
+            if($('#next').text().toUpperCase() !== "GET REPORT!") {
+                testModule.noiseTestFunc(this);
+            }
+
             nextSwithFunc(this);
         });
 
@@ -619,11 +627,14 @@
             console.log("userID: " + idInput);
 
             if(idInput.length == 0) {
-                alert("Please input your ID provided by doctor, then click the button below.");
+                $("#userIDAttention").css('display','inline-block');
+
             } else {
                 userID = idInput;
                 $("#voiceTestSection").css('display','inline-block');
                 $("#participationInfo").css('display','none');
+                $("#userIDAttention").css('display','none');
+
                 $("#next").prop('disabled', false);
                 $("#play").prop('disabled', false);
                 $("#save").prop('disabled', false);
@@ -631,10 +642,10 @@
 
                 getToken();
                 loadSentence();
+                initialArray();
+                initialAudio();
+                testModule.initialAudio();
             }
         });
-
-        initialArray();
-        initialAudio();
 
 })(jQuery);

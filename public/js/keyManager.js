@@ -11,18 +11,10 @@
         var keyInput = String.fromCharCode(charCode);
         // Key down event.
         // console.log("key down " + keyInput);
-
-        // // t for Test Noise button
-        // if((keyInput == 'T' || keyInput == 't') && !($("#noiseTestBtn").is(":disabled"))) {
-        //     $("#noiseTestBtn").click();
-        // }
-
+        
         // n for Next button click
         if((charCode === 16) && !($("#next").is(":disabled"))) {
             event.preventDefault();
-            if($('#next').text().toUpperCase() !== "GET REPORT!") {
-                $("#noiseTestBtn").click();
-            }
             $("#next").click();
         }
 
@@ -46,17 +38,9 @@
         // Key up event.
         // console.log("key up " + event.keyCode);
 
-        // // t for Test Noise button
-        // if((keyInput == 'T' || keyInput == 't') && !($("#noiseTestBtn").is(":disabled"))) {
-        //     $("#noiseTestBtn").click();
-        // }
-
         // n for Next button click
         if((charCode === 16) && !($("#next").is(":disabled"))) {
             event.preventDefault();
-            if($('#next').text().toUpperCase() !== "GET REPORT!") {
-                $("#noiseTestBtn").click();
-            }
             $("#next").click();
         }
     };
